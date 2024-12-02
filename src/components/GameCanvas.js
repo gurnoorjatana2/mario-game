@@ -16,8 +16,9 @@ const GameCanvas = () => {
 
     // Define platforms
     const platforms = [
-        { id: 1, x: 100, y: 300, width: 100, height: 20 },
-        { id: 2, x: 300, y: 200, width: 100, height: 20 },
+        { id: 1, x: 100, y: 300, width: 100, height: 20 }, // Floating platform
+        { id: 2, x: 300, y: 200, width: 100, height: 20 }, // Floating platform
+        { id: 3, x: 0, y: 380, width: 800, height: 20 }, // Ground/road platform
     ];
 
     // Handle collectible collection
@@ -87,6 +88,7 @@ const GameCanvas = () => {
                     y={platform.y}
                     width={platform.width}
                     height={platform.height}
+                    color={platform.id === 3 ? "gray" : "brown"} // Gray for ground/road, brown for others
                 />
             ))}
 
@@ -150,3 +152,4 @@ const GameCanvas = () => {
 };
 
 export default GameCanvas;
+
