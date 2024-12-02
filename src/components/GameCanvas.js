@@ -14,28 +14,34 @@ const GameCanvas = () => {
     ]);
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
 
+    // Define platforms
     const platforms = [
-        { x: 100, y: 300, width: 100, height: 20 },
-        { x: 300, y: 200, width: 100, height: 20 },
+        { id: 1, x: 100, y: 300, width: 100, height: 20 },
+        { id: 2, x: 300, y: 200, width: 100, height: 20 },
     ];
 
+    // Handle collectible collection
     const handleCollect = () => {
         setScore((prevScore) => prevScore + 1);
     };
 
+    // Handle enemy collision
     const handleEnemyCollision = (enemyId, wasJumpedOn) => {
         if (wasJumpedOn) {
             // Kill the enemy
-            setEnemies((prev) =>
-                prev.map((enemy) => (enemy.id === enemyId ? { ...enemy, isAlive: false } : enemy))
+            setEnemies((prevEnemies) =>
+                prevEnemies.map((enemy) =>
+                    enemy.id === enemyId ? { ...enemy, isAlive: false } : enemy
+                )
             );
-            setScore((prev) => prev + 10); // Bonus for defeating an enemy
+            setScore((prevScore) => prevScore + 10); // Bonus for defeating an enemy
         } else {
             // Character dies
             setIsCharacterAlive(false);
         }
     };
 
+    // Background music setup
     useEffect(() => {
         const backgroundMusic = new Howl({
             src: ["/assets/background-music.mp3"],
@@ -60,6 +66,7 @@ const GameCanvas = () => {
                 backgroundSize: "cover",
             }}
         >
+            {/* Display the score */}
             <div
                 style={{
                     position: "absolute",
@@ -72,13 +79,22 @@ const GameCanvas = () => {
                 Score: {score}
             </div>
 
-            {platforms.map((platform, index) => (
-                <Platform key={index} x={platform.x} y={platform.y} />
+            {/* Render platforms */}
+            {platforms.map((platform) => (
+                <Platform
+                    key={platform.id}
+                    x={platform.x}
+                    y={platform.y}
+                    width={platform.width}
+                    height={platform.height}
+                />
             ))}
 
+            {/* Render collectibles */}
             <Collectible x={120} y={270} playerPosition={playerPosition} onCollect={handleCollect} />
             <Collectible x={320} y={170} playerPosition={playerPosition} onCollect={handleCollect} />
 
+            {/* Render enemies */}
             {enemies.map(
                 (enemy) =>
                     enemy.isAlive && (
@@ -91,6 +107,7 @@ const GameCanvas = () => {
                     )
             )}
 
+            {/* Render character if alive */}
             {isCharacterAlive && (
                 <Character
                     onPositionUpdate={setPlayerPosition}
