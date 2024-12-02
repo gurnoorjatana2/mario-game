@@ -7,7 +7,7 @@ import { Howl } from "howler";
 
 const GameCanvas = () => {
     const [score, setScore] = useState(0);
-    const [playerPosition, setPlayerPosition] = useState({ x: 50, y: 300 }); // Track player position
+    const [playerPosition, setPlayerPosition] = useState({ x: 50, y: 300 });
 
     const platforms = [
         { x: 100, y: 300, width: 100, height: 20 },
@@ -27,9 +27,7 @@ const GameCanvas = () => {
 
         backgroundMusic.play();
 
-        return () => {
-            backgroundMusic.stop(); // Stop music when the component unmounts
-        };
+        return () => backgroundMusic.stop();
     }, []);
 
     return (
@@ -56,24 +54,14 @@ const GameCanvas = () => {
                 Score: {score}
             </div>
 
-            {/* Platforms */}
             {platforms.map((platform, index) => (
                 <Platform key={index} x={platform.x} y={platform.y} />
             ))}
 
-            {/* Collectibles */}
             <Collectible x={120} y={270} playerPosition={playerPosition} onCollect={handleCollect} />
             <Collectible x={320} y={170} playerPosition={playerPosition} onCollect={handleCollect} />
 
-            {/* Enemies */}
-            <Enemy x={200} y={270} />
-            <Enemy x={500} y={270} />
-
-            {/* Player Character */}
-            <Character
-                setPlayerPosition={setPlayerPosition}
-                platforms={platforms} // Pass platforms to Character.js
-            />
+            <Character updatePlayerPosition={setPlayerPosition} platforms={platforms} />
         </div>
     );
 };
