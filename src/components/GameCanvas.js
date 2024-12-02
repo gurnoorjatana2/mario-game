@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"; // Added useEffect to the imports
+import React, { useState, useEffect } from "react";
 import Character from "./Character";
 import Platform from "./Platform";
 import Enemy from "./Enemy";
@@ -8,6 +8,11 @@ import { Howl } from "howler";
 const GameCanvas = () => {
     const [score, setScore] = useState(0);
     const [playerPosition, setPlayerPosition] = useState({ x: 50, y: 300 }); // Track player position
+
+    const platforms = [
+        { x: 100, y: 300, width: 100, height: 20 },
+        { x: 300, y: 200, width: 100, height: 20 },
+    ];
 
     const handleCollect = () => {
         setScore((prevScore) => prevScore + 1);
@@ -25,7 +30,7 @@ const GameCanvas = () => {
         return () => {
             backgroundMusic.stop(); // Stop music when the component unmounts
         };
-    }, []); // Empty dependency array ensures this runs once when the component mounts
+    }, []);
 
     return (
         <div
@@ -52,8 +57,9 @@ const GameCanvas = () => {
             </div>
 
             {/* Platforms */}
-            <Platform x={100} y={300} />
-            <Platform x={300} y={200} />
+            {platforms.map((platform, index) => (
+                <Platform key={index} x={platform.x} y={platform.y} />
+            ))}
 
             {/* Collectibles */}
             <Collectible x={120} y={270} playerPosition={playerPosition} onCollect={handleCollect} />
@@ -64,7 +70,10 @@ const GameCanvas = () => {
             <Enemy x={500} y={270} />
 
             {/* Player Character */}
-            <Character setPlayerPosition={setPlayerPosition} />
+            <Character
+                setPlayerPosition={setPlayerPosition}
+                platforms={platforms} // Pass platforms to Character.js
+            />
         </div>
     );
 };
