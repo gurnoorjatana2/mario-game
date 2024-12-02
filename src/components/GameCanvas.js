@@ -9,8 +9,8 @@ const GameCanvas = () => {
     const [score, setScore] = useState(0);
     const [playerPosition, setPlayerPosition] = useState({ x: 50, y: 300 });
     const [enemies, setEnemies] = useState([
-        { id: 1, x: 200, y: 270, isAlive: true },
-        { id: 2, x: 500, y: 270, isAlive: true },
+        { id: 1, x: 200, y: 270, isAlive: true, range: 100 }, // Enemy moves within a range
+        { id: 2, x: 500, y: 270, isAlive: true, range: 100 },
     ]);
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
 
@@ -91,8 +91,15 @@ const GameCanvas = () => {
             ))}
 
             {/* Render collectibles */}
-            <Collectible x={120} y={270} playerPosition={playerPosition} onCollect={handleCollect} />
-            <Collectible x={320} y={170} playerPosition={playerPosition} onCollect={handleCollect} />
+            {[{ x: 120, y: 270 }, { x: 320, y: 170 }].map((collectible, index) => (
+                <Collectible
+                    key={index}
+                    x={collectible.x}
+                    y={collectible.y}
+                    playerPosition={playerPosition}
+                    onCollect={handleCollect}
+                />
+            ))}
 
             {/* Render enemies */}
             {enemies.map(
