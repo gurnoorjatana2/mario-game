@@ -18,7 +18,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 x + 30 > platform.x && // Character's right edge > platform's left edge
                 x < platform.x + platform.width && // Character's left edge < platform's right edge
                 y + 30 >= platform.y && // Character's bottom edge >= platform's top edge
-                y + 30 <= platform.y + 5; // Character's bottom edge is within platform height
+                y + 30 <= platform.y + platform.height; // Character's bottom edge <= platform's bottom edge
 
             if (isColliding) {
                 return platform; // Return the platform object
