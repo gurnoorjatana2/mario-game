@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Howl } from "howler";
 
-const Character = ({ updatePlayerPosition, platforms }) => {
+const Character = ({ onPositionUpdate, platforms }) => {
     const [position, setPosition] = useState({ x: 50, y: 300 });
     const [velocity, setVelocity] = useState({ x: 0, y: 0 });
     const [isJumping, setIsJumping] = useState(false);
@@ -65,7 +65,7 @@ const Character = ({ updatePlayerPosition, platforms }) => {
                 }
 
                 const updatedPosition = { x: newX, y: newY };
-                updatePlayerPosition(updatedPosition); // Call the updater function
+                requestAnimationFrame(() => onPositionUpdate(updatedPosition)); // Update parent state asynchronously
                 return updatedPosition;
             });
 
@@ -76,7 +76,7 @@ const Character = ({ updatePlayerPosition, platforms }) => {
         }, 20);
 
         return () => clearInterval(interval);
-    }, [velocity, platforms, updatePlayerPosition]);
+    }, [velocity, platforms, onPositionUpdate]);
 
     return (
         <div
