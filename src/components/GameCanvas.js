@@ -61,7 +61,7 @@ const GameCanvas = () => {
             <Collectible x={120} y={270} playerPosition={playerPosition} onCollect={handleCollect} />
             <Collectible x={320} y={170} playerPosition={playerPosition} onCollect={handleCollect} />
 
-            <Character updatePlayerPosition={setPlayerPosition} platforms={platforms} />
+            <Character onPositionUpdate={setPlayerPosition} platforms={platforms} />
         </div>
     );
 };
