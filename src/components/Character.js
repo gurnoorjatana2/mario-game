@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Howl } from "howler";
 
-const Character = ({ setPlayerPosition, platforms }) => {
+const Character = ({ updatePlayerPosition, platforms }) => {
     const [position, setPosition] = useState({ x: 50, y: 300 });
     const [velocity, setVelocity] = useState({ x: 0, y: 0 });
     const [isJumping, setIsJumping] = useState(false);
@@ -55,19 +55,17 @@ const Character = ({ setPlayerPosition, platforms }) => {
                 const newX = pos.x + velocity.x;
                 let newY = pos.y + velocity.y;
 
-                // Check collision with platforms
                 const platformY = checkCollisionWithPlatforms(newX, newY);
                 if (platformY !== null) {
                     newY = platformY;
-                    setIsJumping(false); // Reset jumping state
+                    setIsJumping(false);
                 } else if (newY >= 300) {
-                    // Ground level
-                    newY = 300;
+                    newY = 300; // Ground level
                     setIsJumping(false);
                 }
 
                 const updatedPosition = { x: newX, y: newY };
-                setPlayerPosition(updatedPosition); // Update position for collision checks
+                updatePlayerPosition(updatedPosition); // Call the updater function
                 return updatedPosition;
             });
 
@@ -78,7 +76,7 @@ const Character = ({ setPlayerPosition, platforms }) => {
         }, 20);
 
         return () => clearInterval(interval);
-    }, [velocity, platforms, setPlayerPosition]);
+    }, [velocity, platforms, updatePlayerPosition]);
 
     return (
         <div
