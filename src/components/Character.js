@@ -12,18 +12,17 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
     });
 
     const FRAME_HEIGHT = 400; // Height of the game canvas
-    const FRAME_WIDTH = 800; // Width of the game canvas
-    const JUMP_VELOCITY = -12; // Controlled jump velocity
+    const MAX_JUMP_HEIGHT = -20; // Maximum jump velocity
     const GRAVITY = 1; // Gravity applied to the character
 
     // Check collision with platforms
     const checkCollisionWithPlatforms = (x, y) => {
         for (const platform of platforms) {
             const isColliding =
-                x + 30 > platform.x && // Character's right edge > platform's left edge
-                x < platform.x + platform.width && // Character's left edge < platform's right edge
-                y + 30 >= platform.y && // Character's bottom edge >= platform's top edge
-                y + 30 <= platform.y + platform.height; // Character's bottom edge <= platform's bottom edge
+                x + 30 > platform.x &&
+                x < platform.x + platform.width &&
+                y + 30 >= platform.y &&
+                y + 30 <= platform.y + platform.height;
 
             if (isColliding) {
                 return platform;
@@ -38,10 +37,10 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
             if (!enemy.isAlive) continue;
 
             const isColliding =
-                x + 30 > enemy.x && // Character's right edge > enemy's left edge
-                x < enemy.x + 30 && // Character's left edge < enemy's right edge
-                y + 30 > enemy.y && // Character's bottom edge > enemy's top edge
-                y < enemy.y + 30; // Character's top edge < enemy's bottom edge
+                x + 30 > enemy.x &&
+                x < enemy.x + 30 &&
+                y + 30 > enemy.y &&
+                y < enemy.y + 30;
 
             const wasJumpedOn = y + 30 >= enemy.y && y < enemy.y;
 
@@ -58,9 +57,12 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
         const handleKeyDown = (e) => {
             if (e.key === "ArrowRight") setVelocity((v) => ({ ...v, x: 5 }));
             if (e.key === "ArrowLeft") setVelocity((v) => ({ ...v, x: -5 }));
-            if (e.key === " " && !isJumping) {
+            if (e.key === " " && velocity.y > MAX_JUMP_HEIGHT) {
                 jumpSound.play();
-                setVelocity((v) => ({ ...v, y: JUMP_VELOCITY })); // Controlled jump velocity
+                setVelocity((v) => ({
+                    ...v,
+                    y: v.y + -5, // Add upward velocity on each press
+                }));
                 setIsJumping(true);
                 setCurrentPlatform(null); // Exit platform when jumping
             }
@@ -77,7 +79,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
             window.removeEventListener("keydown", handleKeyDown);
             window.removeEventListener("keyup", handleKeyUp);
         };
-    }, [isJumping]);
+    }, [velocity.y]);
 
     // Main game loop
     useEffect(() => {
@@ -154,5 +156,6 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
 };
 
 export default Character;
+
 
 
