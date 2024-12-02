@@ -12,8 +12,10 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
     });
 
     const FRAME_HEIGHT = 400; // Height of the game canvas
-    const MAX_JUMP_HEIGHT = -20; // Maximum jump velocity
-    const GRAVITY = 1; // Gravity applied to the character
+    const MAX_JUMP_HEIGHT = -30; // Maximum jump velocity for multi-jump
+    const INITIAL_JUMP_VELOCITY = -15; // Initial jump velocity
+    const MULTI_JUMP_INCREMENT = -5; // Additional velocity for each jump
+    const GRAVITY = 0.8; // Gravity applied to the character
 
     // Check collision with platforms
     const checkCollisionWithPlatforms = (x, y) => {
@@ -61,7 +63,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 jumpSound.play();
                 setVelocity((v) => ({
                     ...v,
-                    y: v.y + -5, // Add upward velocity on each press
+                    y: Math.max(v.y + MULTI_JUMP_INCREMENT, MAX_JUMP_HEIGHT), // Allow higher jumps up to the max
                 }));
                 setIsJumping(true);
                 setCurrentPlatform(null); // Exit platform when jumping
@@ -156,6 +158,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
 };
 
 export default Character;
+
 
 
 
