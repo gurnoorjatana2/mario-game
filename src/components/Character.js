@@ -12,7 +12,8 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
     });
 
     const FRAME_HEIGHT = 400; // Height of the game canvas
-    const JUMP_VELOCITY = -12; // Restrict the jump height
+    const FRAME_WIDTH = 800; // Width of the game canvas
+    const JUMP_VELOCITY = -12; // Controlled jump velocity
     const GRAVITY = 1; // Gravity applied to the character
 
     // Check collision with platforms
@@ -98,11 +99,17 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                     setIsJumping(false);
                     setCurrentPlatform(platform);
                 } else if (newY >= FRAME_HEIGHT - 30) {
-                    newY = FRAME_HEIGHT - 30; // Ground level (bottom of the frame)
+                    // Ground level
+                    newY = FRAME_HEIGHT - 30;
                     setIsJumping(false);
                     setCurrentPlatform(null);
                 } else {
                     setCurrentPlatform(null);
+                }
+
+                // Apply gravity
+                if (!platform && newY < FRAME_HEIGHT - 30) {
+                    setVelocity((v) => ({ ...v, y: v.y + GRAVITY }));
                 }
 
                 // Restrict movement to platform boundaries
@@ -147,4 +154,5 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
 };
 
 export default Character;
+
 
