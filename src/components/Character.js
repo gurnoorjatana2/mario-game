@@ -11,44 +11,44 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
         src: ["/assets/jump.mp3"],
     });
 
-    // Function to check collision with platforms
+    // Check collision with platforms
     const checkCollisionWithPlatforms = (x, y) => {
         for (const platform of platforms) {
             const isColliding =
-                x + 30 > platform.x && // Character's right edge > platform's left edge
-                x < platform.x + platform.width && // Character's left edge < platform's right edge
-                y + 30 >= platform.y && // Character's bottom edge >= platform's top edge
-                y + 30 <= platform.y + platform.height; // Character's bottom edge <= platform's bottom edge
+                x + 30 > platform.x &&
+                x < platform.x + platform.width &&
+                y + 30 >= platform.y &&
+                y + 30 <= platform.y + platform.height;
 
             if (isColliding) {
-                return platform; // Return the platform object
+                return platform;
             }
         }
         return null;
     };
 
-    // Function to check collision with enemies
+    // Check collision with enemies
     const checkCollisionWithEnemies = (x, y) => {
         for (const enemy of enemies) {
             if (!enemy.isAlive) continue;
 
             const isColliding =
-                x + 30 > enemy.x && // Character's right edge > enemy's left edge
-                x < enemy.x + 30 && // Character's left edge < enemy's right edge
-                y + 30 > enemy.y && // Character's bottom edge > enemy's top edge
-                y < enemy.y + 30; // Character's top edge < enemy's bottom edge
+                x + 30 > enemy.x &&
+                x < enemy.x + 30 &&
+                y + 30 > enemy.y &&
+                y < enemy.y + 30;
 
-            const wasJumpedOn = y + 30 >= enemy.y && y < enemy.y; // Character lands on the enemy
+            const wasJumpedOn = y + 30 >= enemy.y && y < enemy.y;
 
             if (isColliding) {
-                onEnemyCollision(enemy.id, wasJumpedOn); // Notify parent about the collision
+                onEnemyCollision(enemy.id, wasJumpedOn);
                 return !wasJumpedOn; // Return true if character dies, false if enemy dies
             }
         }
         return false;
     };
 
-    // Event listeners for movement
+    // Movement event listeners
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === "ArrowRight") setVelocity((v) => ({ ...v, x: 5 }));
@@ -57,7 +57,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 jumpSound.play();
                 setVelocity((v) => ({ ...v, y: -15 }));
                 setIsJumping(true);
-                setCurrentPlatform(null); // Exit the platform when jumping
+                setCurrentPlatform(null); // Exit platform when jumping
             }
         };
 
@@ -81,29 +81,28 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 let newX = pos.x + velocity.x;
                 let newY = pos.y + velocity.y;
 
-                // Check collision with platforms
+                // Check platform collision
                 const platform = checkCollisionWithPlatforms(newX, newY);
-                if (platform) {
-                    newY = platform.y - 30; // Land on the platform
+                if (platform && newY + 30 >= platform.y && velocity.y >= 0) {
+                    newY = platform.y - 30; // Land on platform
                     setIsJumping(false);
-                    setCurrentPlatform(platform); // Remember the platform
+                    setCurrentPlatform(platform);
                 } else if (newY >= 300) {
                     newY = 300; // Ground level
                     setIsJumping(false);
                     setCurrentPlatform(null);
                 } else {
-                    setCurrentPlatform(null); // No platform under the character
+                    setCurrentPlatform(null);
                 }
 
-                // Restrict movement to within the platform if on one
+                // Restrict movement to platform boundaries
                 if (currentPlatform) {
-                    newX = Math.max(
-                        currentPlatform.x,
-                        Math.min(newX, currentPlatform.x + currentPlatform.width - 30)
-                    );
+                    if (newX < currentPlatform.x || newX > currentPlatform.x + currentPlatform.width - 30) {
+                        setCurrentPlatform(null);
+                    }
                 }
 
-                // Check collision with enemies
+                // Check enemy collision
                 const died = checkCollisionWithEnemies(newX, newY);
                 if (died) {
                     newY = 400; // Character "falls" when dying
@@ -111,7 +110,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 }
 
                 const updatedPosition = { x: newX, y: newY };
-                onPositionUpdate(updatedPosition); // Notify parent
+                onPositionUpdate(updatedPosition);
                 return updatedPosition;
             });
 
@@ -134,7 +133,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 width: "30px",
                 height: "30px",
                 backgroundColor: "red",
-                borderRadius: "5px", // Make the character slightly rounded
+                borderRadius: "5px",
             }}
         ></div>
     );
