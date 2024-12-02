@@ -11,6 +11,10 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
         src: ["/assets/jump.mp3"],
     });
 
+    const FRAME_HEIGHT = 400; // Height of the game canvas
+    const JUMP_VELOCITY = -12; // Restrict the jump height
+    const GRAVITY = 1; // Gravity applied to the character
+
     // Check collision with platforms
     const checkCollisionWithPlatforms = (x, y) => {
         for (const platform of platforms) {
@@ -55,7 +59,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
             if (e.key === "ArrowLeft") setVelocity((v) => ({ ...v, x: -5 }));
             if (e.key === " " && !isJumping) {
                 jumpSound.play();
-                setVelocity((v) => ({ ...v, y: -15 }));
+                setVelocity((v) => ({ ...v, y: JUMP_VELOCITY })); // Controlled jump velocity
                 setIsJumping(true);
                 setCurrentPlatform(null); // Exit platform when jumping
             }
@@ -81,14 +85,20 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 let newX = prevPos.x + velocity.x;
                 let newY = prevPos.y + velocity.y;
 
+                // Apply ceiling limit
+                if (newY < 0) {
+                    newY = 0; // Prevent leaving the top of the frame
+                    setVelocity((v) => ({ ...v, y: 0 })); // Reset upward velocity
+                }
+
                 // Check platform collision
                 const platform = checkCollisionWithPlatforms(newX, newY);
                 if (platform && newY + 30 >= platform.y && velocity.y >= 0) {
                     newY = platform.y - 30; // Land on platform
                     setIsJumping(false);
                     setCurrentPlatform(platform);
-                } else if (newY >= 300) {
-                    newY = 300; // Ground level
+                } else if (newY >= FRAME_HEIGHT - 30) {
+                    newY = FRAME_HEIGHT - 30; // Ground level (bottom of the frame)
                     setIsJumping(false);
                     setCurrentPlatform(null);
                 } else {
@@ -105,7 +115,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 // Check enemy collision
                 const died = checkCollisionWithEnemies(newX, newY);
                 if (died) {
-                    newY = 400; // Character "falls" when dying
+                    newY = FRAME_HEIGHT; // Character "falls" when dying
                     setIsJumping(false);
                 }
 
