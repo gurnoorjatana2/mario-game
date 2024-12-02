@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Howl } from "howler";
 
-const Character = ({ onPositionUpdate, platforms }) => {
+const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) => {
     const [position, setPosition] = useState({ x: 50, y: 300 });
     const [velocity, setVelocity] = useState({ x: 0, y: 0 });
     const [isJumping, setIsJumping] = useState(false);
@@ -23,6 +23,26 @@ const Character = ({ onPositionUpdate, platforms }) => {
             }
         }
         return null;
+    };
+
+    const checkCollisionWithEnemies = (x, y) => {
+        for (const enemy of enemies) {
+            if (!enemy.isAlive) continue;
+
+            const isColliding =
+                x + 30 > enemy.x && // Character's right edge > enemy's left edge
+                x < enemy.x + 30 && // Character's left edge < enemy's right edge
+                y + 30 > enemy.y && // Character's bottom edge > enemy's top edge
+                y < enemy.y + 30; // Character's top edge < enemy's bottom edge
+
+            const wasJumpedOn = y + 30 >= enemy.y && y < enemy.y; // Character lands on the enemy
+
+            if (isColliding) {
+                onEnemyCollision(enemy.id, wasJumpedOn); // Notify parent about the collision
+                if (!wasJumpedOn) return true; // Character dies if not jumping on the enemy
+            }
+        }
+        return false;
     };
 
     useEffect(() => {
@@ -55,12 +75,20 @@ const Character = ({ onPositionUpdate, platforms }) => {
                 const newX = pos.x + velocity.x;
                 let newY = pos.y + velocity.y;
 
+                // Check collision with platforms
                 const platformY = checkCollisionWithPlatforms(newX, newY);
                 if (platformY !== null) {
                     newY = platformY;
                     setIsJumping(false);
                 } else if (newY >= 300) {
                     newY = 300; // Ground level
+                    setIsJumping(false);
+                }
+
+                // Check collision with enemies
+                const died = checkCollisionWithEnemies(newX, newY);
+                if (died) {
+                    newY = 400; // Character "falls" when dying
                     setIsJumping(false);
                 }
 
@@ -76,7 +104,7 @@ const Character = ({ onPositionUpdate, platforms }) => {
         }, 20);
 
         return () => clearInterval(interval);
-    }, [velocity, platforms, onPositionUpdate]);
+    }, [velocity, platforms, enemies, onEnemyCollision, onPositionUpdate]);
 
     return (
         <div
