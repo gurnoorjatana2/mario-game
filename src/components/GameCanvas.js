@@ -9,7 +9,7 @@ const GameCanvas = () => {
     const [score, setScore] = useState(0);
     const [playerPosition, setPlayerPosition] = useState({ x: 50, y: 300 });
     const [enemies, setEnemies] = useState([
-        { id: 1, x: 200, y: 270, isAlive: true, range: 100 }, // Enemy moves within a range
+        { id: 1, x: 200, y: 270, isAlive: true, range: 100 },
         { id: 2, x: 500, y: 270, isAlive: true, range: 100 },
     ]);
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
@@ -122,6 +122,28 @@ const GameCanvas = () => {
                     enemies={enemies}
                     onEnemyCollision={handleEnemyCollision}
                 />
+            )}
+
+            {/* Show game over message if character is not alive */}
+            {!isCharacterAlive && (
+                <div
+                    style={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        fontSize: "30px",
+                        color: "white",
+                        backgroundColor: "rgba(0, 0, 0, 0.7)",
+                        padding: "20px",
+                        borderRadius: "10px",
+                        textAlign: "center",
+                    }}
+                >
+                    Game Over
+                    <br />
+                    Score: {score}
+                </div>
             )}
         </div>
     );
