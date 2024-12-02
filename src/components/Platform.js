@@ -1,15 +1,15 @@
-import React from 'react';
+import React from "react";
 
-const Platform = ({ x, y }) => {
+const Platform = ({ x, y, width, height }) => {
     return (
         <div
             style={{
-                position: 'absolute',
+                position: "absolute",
                 left: `${x}px`,
                 top: `${y}px`,
-                width: '100px',
-                height: '20px',
-                backgroundColor: 'brown',
+                width: `${width}px`,
+                height: `${height}px`,
+                backgroundColor: "brown",
             }}
         ></div>
     );
