@@ -1,22 +1,36 @@
 import React, { useState, useEffect } from "react";
 import { Howl } from "howler";
 
-const Character = ({ setPlayerPosition }) => {
+const Character = ({ setPlayerPosition, platforms }) => {
     const [position, setPosition] = useState({ x: 50, y: 300 });
     const [velocity, setVelocity] = useState({ x: 0, y: 0 });
     const [isJumping, setIsJumping] = useState(false);
 
-    // Jump sound
     const jumpSound = new Howl({
-        src: ["/assets/jump.mp3"], // Make sure this path is correct
+        src: ["/assets/jump.mp3"],
     });
+
+    const checkCollisionWithPlatforms = (x, y) => {
+        for (const platform of platforms) {
+            const isColliding =
+                x + 30 > platform.x && // Character's right edge > platform's left edge
+                x < platform.x + platform.width && // Character's left edge < platform's right edge
+                y + 30 >= platform.y && // Character's bottom edge >= platform's top edge
+                y + 30 <= platform.y + 5; // Character's bottom edge is within platform height
+
+            if (isColliding) {
+                return platform.y - 30; // Return the adjusted Y position
+            }
+        }
+        return null;
+    };
 
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === "ArrowRight") setVelocity((v) => ({ ...v, x: 5 }));
             if (e.key === "ArrowLeft") setVelocity((v) => ({ ...v, x: -5 }));
             if (e.key === " " && !isJumping) {
-                jumpSound.play(); // Play jump sound
+                jumpSound.play();
                 setVelocity((v) => ({ ...v, y: -15 }));
                 setIsJumping(true);
             }
@@ -38,15 +52,21 @@ const Character = ({ setPlayerPosition }) => {
     useEffect(() => {
         const interval = setInterval(() => {
             setPosition((pos) => {
-                const newY = pos.y + velocity.y;
                 const newX = pos.x + velocity.x;
-                const isOnGround = newY >= 300; // Ground level
+                let newY = pos.y + velocity.y;
 
-                const updatedPosition = {
-                    x: newX,
-                    y: isOnGround ? 300 : newY,
-                };
+                // Check collision with platforms
+                const platformY = checkCollisionWithPlatforms(newX, newY);
+                if (platformY !== null) {
+                    newY = platformY;
+                    setIsJumping(false); // Reset jumping state
+                } else if (newY >= 300) {
+                    // Ground level
+                    newY = 300;
+                    setIsJumping(false);
+                }
 
+                const updatedPosition = { x: newX, y: newY };
                 setPlayerPosition(updatedPosition); // Update position for collision checks
                 return updatedPosition;
             });
@@ -55,12 +75,10 @@ const Character = ({ setPlayerPosition }) => {
                 x: v.x,
                 y: v.y + 1, // Gravity
             }));
-
-            if (position.y >= 300) setIsJumping(false); // Reset jump state
         }, 20);
 
         return () => clearInterval(interval);
-    }, [velocity, position.y, setPlayerPosition]);
+    }, [velocity, platforms, setPlayerPosition]);
 
     return (
         <div
