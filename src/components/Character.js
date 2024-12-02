@@ -11,6 +11,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
         src: ["/assets/jump.mp3"],
     });
 
+    // Function to check collision with platforms
     const checkCollisionWithPlatforms = (x, y) => {
         for (const platform of platforms) {
             const isColliding =
@@ -26,6 +27,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
         return null;
     };
 
+    // Function to check collision with enemies
     const checkCollisionWithEnemies = (x, y) => {
         for (const enemy of enemies) {
             if (!enemy.isAlive) continue;
@@ -40,12 +42,13 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
 
             if (isColliding) {
                 onEnemyCollision(enemy.id, wasJumpedOn); // Notify parent about the collision
-                if (!wasJumpedOn) return true; // Character dies if not jumping on the enemy
+                return !wasJumpedOn; // Return true if character dies, false if enemy dies
             }
         }
         return false;
     };
 
+    // Event listeners for movement
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === "ArrowRight") setVelocity((v) => ({ ...v, x: 5 }));
@@ -71,6 +74,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
         };
     }, [isJumping]);
 
+    // Main game loop
     useEffect(() => {
         const interval = setInterval(() => {
             setPosition((pos) => {
@@ -91,7 +95,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                     setCurrentPlatform(null); // No platform under the character
                 }
 
-                // Stay within platform boundaries if walking on it
+                // Restrict movement to within the platform if on one
                 if (currentPlatform) {
                     newX = Math.max(
                         currentPlatform.x,
@@ -107,10 +111,11 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 }
 
                 const updatedPosition = { x: newX, y: newY };
-                requestAnimationFrame(() => onPositionUpdate(updatedPosition)); // Update parent state asynchronously
+                onPositionUpdate(updatedPosition); // Notify parent
                 return updatedPosition;
             });
 
+            // Apply gravity
             setVelocity((v) => ({
                 x: v.x,
                 y: v.y + 1, // Gravity
@@ -129,6 +134,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 width: "30px",
                 height: "30px",
                 backgroundColor: "red",
+                borderRadius: "5px", // Make the character slightly rounded
             }}
         ></div>
     );
