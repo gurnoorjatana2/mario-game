@@ -1,40 +1,39 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect } from "react";
 
-const Collectible = ({ x, y, width = 20, height = 20, playerPosition, onCollect }) => {
-    const [isVisible, setIsVisible] = useState(true);
-    const playerWidth = 30;
+const Collectible = ({ x, y, playerPosition, onCollect }) => {
+    const [collected, setCollected] = useState(false);
 
-    // Check collision
-    const isCollected =
-        playerPosition.x < x + width &&
-        playerPosition.x + playerWidth > x &&
-        playerPosition.y < y + height &&
-        playerPosition.y + playerWidth > y;
+    useEffect(() => {
+        if (!collected) {
+            const isCollected =
+                playerPosition.x < x + 20 &&
+                playerPosition.x + 30 > x &&
+                playerPosition.y < y + 20 &&
+                playerPosition.y + 30 > y;
 
-    if (isCollected && isVisible) {
-        setIsVisible(false); // Hide collectible
-        onCollect();
-    }
+            if (isCollected) {
+                setCollected(true); // Update local state
+                onCollect(); // Trigger parent state update
+            }
+        }
+    }, [playerPosition, collected, x, y, onCollect]);
+
+    if (collected) return null;
 
     return (
-        isVisible && (
-            <motion.div
-                initial={{ scale: 1 }}
-                animate={{ scale: 1.2 }}
-                exit={{ opacity: 0, scale: 0 }} // Fade-out animation
-                style={{
-                    position: "absolute",
-                    left: `${x}px`,
-                    top: `${y}px`,
-                    width: `${width}px`,
-                    height: `${height}px`,
-                    backgroundColor: "gold",
-                    borderRadius: "50%",
-                }}
-            ></motion.div>
-        )
+        <div
+            style={{
+                position: "absolute",
+                left: `${x}px`,
+                top: `${y}px`,
+                width: "20px",
+                height: "20px",
+                backgroundColor: "gold",
+                borderRadius: "50%",
+            }}
+        ></div>
     );
 };
 
 export default Collectible;
+
