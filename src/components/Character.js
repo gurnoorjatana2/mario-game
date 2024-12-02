@@ -5,6 +5,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
     const [position, setPosition] = useState({ x: 50, y: 300 });
     const [velocity, setVelocity] = useState({ x: 0, y: 0 });
     const [isJumping, setIsJumping] = useState(false);
+    const [currentPlatform, setCurrentPlatform] = useState(null);
 
     const jumpSound = new Howl({
         src: ["/assets/jump.mp3"],
@@ -19,7 +20,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 y + 30 <= platform.y + 5; // Character's bottom edge is within platform height
 
             if (isColliding) {
-                return platform.y - 30; // Return the adjusted Y position
+                return platform; // Return the platform object
             }
         }
         return null;
@@ -53,6 +54,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 jumpSound.play();
                 setVelocity((v) => ({ ...v, y: -15 }));
                 setIsJumping(true);
+                setCurrentPlatform(null); // Exit the platform when jumping
             }
         };
 
@@ -72,17 +74,29 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
     useEffect(() => {
         const interval = setInterval(() => {
             setPosition((pos) => {
-                const newX = pos.x + velocity.x;
+                let newX = pos.x + velocity.x;
                 let newY = pos.y + velocity.y;
 
                 // Check collision with platforms
-                const platformY = checkCollisionWithPlatforms(newX, newY);
-                if (platformY !== null) {
-                    newY = platformY;
+                const platform = checkCollisionWithPlatforms(newX, newY);
+                if (platform) {
+                    newY = platform.y - 30; // Land on the platform
                     setIsJumping(false);
+                    setCurrentPlatform(platform); // Remember the platform
                 } else if (newY >= 300) {
                     newY = 300; // Ground level
                     setIsJumping(false);
+                    setCurrentPlatform(null);
+                } else {
+                    setCurrentPlatform(null); // No platform under the character
+                }
+
+                // Stay within platform boundaries if walking on it
+                if (currentPlatform) {
+                    newX = Math.max(
+                        currentPlatform.x,
+                        Math.min(newX, currentPlatform.x + currentPlatform.width - 30)
+                    );
                 }
 
                 // Check collision with enemies
@@ -104,7 +118,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
         }, 20);
 
         return () => clearInterval(interval);
-    }, [velocity, platforms, enemies, onEnemyCollision, onPositionUpdate]);
+    }, [velocity, platforms, currentPlatform, enemies, onEnemyCollision, onPositionUpdate]);
 
     return (
         <div
