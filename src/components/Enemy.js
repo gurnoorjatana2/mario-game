@@ -2,21 +2,22 @@ import React, { useState, useEffect } from "react";
 
 const Enemy = ({ enemy, playerPosition, onEnemyCollision }) => {
     const [position, setPosition] = useState({ x: enemy.x, y: enemy.y });
-    const [direction, setDirection] = useState(1); // 1 for right, -1 for left
+    const [direction, setDirection] = useState(1); // 1 for moving right, -1 for moving left
 
     useEffect(() => {
         const interval = setInterval(() => {
             setPosition((pos) => {
-                const newX = pos.x + direction * 2;
+                const newX = pos.x + direction * 2; // Adjust speed by changing 2
+                // Reverse direction if it goes out of bounds
                 if (newX <= enemy.x - 50 || newX >= enemy.x + 50) {
                     setDirection((d) => -d); // Reverse direction
                 }
                 return { x: newX, y: pos.y };
             });
-        }, 50);
+        }, 50); // Adjust interval for smoother or faster motion
 
         return () => clearInterval(interval);
-    }, [enemy.x]);
+    }, [enemy.x, direction]);
 
     // Check collision with player
     useEffect(() => {
@@ -27,7 +28,7 @@ const Enemy = ({ enemy, playerPosition, onEnemyCollision }) => {
             playerPosition.y < position.y + 30; // Character's top edge < enemy's bottom edge
 
         const wasJumpedOn =
-            playerPosition.y + 30 >= position.y && playerPosition.y < position.y; // Jumping on top
+            playerPosition.y + 30 >= position.y && playerPosition.y < position.y; // Character lands on the enemy
 
         if (isColliding) {
             onEnemyCollision(enemy.id, wasJumpedOn);
