@@ -1,6 +1,6 @@
 import React from "react";
 
-const Platform = ({ x, y, width, height }) => {
+const Platform = ({ x, y, width, height, color = "brown" }) => {
     return (
         <div
             style={{
@@ -9,10 +9,11 @@ const Platform = ({ x, y, width, height }) => {
                 top: `${y}px`,
                 width: `${width}px`,
                 height: `${height}px`,
-                backgroundColor: "brown",
+                backgroundColor: color,
             }}
         ></div>
     );
 };
 
 export default Platform;
+
