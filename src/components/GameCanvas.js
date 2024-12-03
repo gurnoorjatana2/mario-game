@@ -4,28 +4,64 @@ import Platform from "./Platform";
 import Enemy from "./Enemy";
 import Collectible from "./Collectible";
 import { Howl } from "howler";
-import Confetti from "react-confetti"; // Install via `npm install react-confetti`
 
 const GameCanvas = () => {
+    const [level, setLevel] = useState(1); // Current level
     const [score, setScore] = useState(0);
     const [playerPosition, setPlayerPosition] = useState({ x: 50, y: 300 });
-    const [enemies, setEnemies] = useState([
-        { id: 1, x: 200, y: 270, isAlive: true, range: 100 },
-        { id: 2, x: 500, y: 270, isAlive: true, range: 100 },
-    ]);
-    const [collectibles, setCollectibles] = useState([
-        { id: 1, x: 120, y: 270, collected: false },
-        { id: 2, x: 320, y: 170, collected: false },
-    ]);
+    const [enemies, setEnemies] = useState([]);
+    const [collectibles, setCollectibles] = useState([]);
+    const [platforms, setPlatforms] = useState([]);
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
     const [gameWon, setGameWon] = useState(false);
 
-    // Define platforms
-    const platforms = [
-        { id: 1, x: 100, y: 300, width: 100, height: 20 },
-        { id: 2, x: 300, y: 200, width: 100, height: 20 },
-        { id: 3, x: 0, y: 380, width: 800, height: 20 },
-    ];
+    // Define level data
+    const levelData = {
+        1: {
+            platforms: [
+                { id: 1, x: 100, y: 300, width: 100, height: 20 },
+                { id: 2, x: 300, y: 200, width: 100, height: 20 },
+                { id: 3, x: 0, y: 380, width: 800, height: 20 }, // Ground
+            ],
+            enemies: [
+                { id: 1, x: 200, y: 270, isAlive: true, range: 100 },
+                { id: 2, x: 500, y: 270, isAlive: true, range: 100 },
+            ],
+            collectibles: [
+                { id: 1, x: 120, y: 270, collected: false },
+                { id: 2, x: 320, y: 170, collected: false },
+            ],
+        },
+        2: {
+            platforms: [
+                { id: 1, x: 50, y: 300, width: 100, height: 20 },
+                { id: 2, x: 200, y: 250, width: 100, height: 20 },
+                { id: 3, x: 350, y: 200, width: 100, height: 20 },
+                { id: 4, x: 0, y: 380, width: 800, height: 20 }, // Ground
+            ],
+            enemies: [
+                { id: 1, x: 100, y: 270, isAlive: true, range: 150 },
+                { id: 2, x: 300, y: 250, isAlive: true, range: 200 },
+                { id: 3, x: 600, y: 250, isAlive: true, range: 100 },
+            ],
+            collectibles: [
+                { id: 1, x: 70, y: 270, collected: false },
+                { id: 2, x: 250, y: 220, collected: false },
+                { id: 3, x: 400, y: 170, collected: false },
+            ],
+        },
+    };
+
+    // Load level data
+    useEffect(() => {
+        const { platforms, enemies, collectibles } = levelData[level];
+        setPlatforms(platforms);
+        setEnemies(enemies);
+        setCollectibles(collectibles);
+        setPlayerPosition({ x: 50, y: 300 }); // Reset character position
+        setIsCharacterAlive(true);
+        setGameWon(false);
+    }, [level]);
 
     // Handle collectible collection
     const handleCollect = (collectibleId) => {
@@ -59,9 +95,13 @@ const GameCanvas = () => {
         const allCollectiblesCollected = collectibles.every((collectible) => collectible.collected);
 
         if (allEnemiesDefeated && allCollectiblesCollected) {
-            setGameWon(true);
+            if (level < Object.keys(levelData).length) {
+                setLevel((prevLevel) => prevLevel + 1); // Move to the next level
+            } else {
+                setGameWon(true); // Game completed
+            }
         }
-    }, [enemies, collectibles]);
+    }, [enemies, collectibles, level]);
 
     // Background music setup
     useEffect(() => {
@@ -88,7 +128,7 @@ const GameCanvas = () => {
                 backgroundSize: "cover",
             }}
         >
-            {/* Display the score */}
+            {/* Display the score and level */}
             <div
                 style={{
                     position: "absolute",
@@ -99,6 +139,17 @@ const GameCanvas = () => {
                 }}
             >
                 Score: {score}
+            </div>
+            <div
+                style={{
+                    position: "absolute",
+                    top: "10px",
+                    right: "10px",
+                    fontSize: "20px",
+                    color: "white",
+                }}
+            >
+                Level: {level}
             </div>
 
             {/* Render platforms */}
@@ -150,8 +201,8 @@ const GameCanvas = () => {
                 />
             )}
 
-            {/* Show game over message if character is not alive */}
-            {!isCharacterAlive && (
+            {/* Show "You Won" screen */}
+            {gameWon && (
                 <div
                     style={{
                         position: "absolute",
@@ -159,46 +210,22 @@ const GameCanvas = () => {
                         left: "50%",
                         transform: "translate(-50%, -50%)",
                         fontSize: "30px",
-                        color: "white",
+                        color: "yellow",
                         backgroundColor: "rgba(0, 0, 0, 0.7)",
                         padding: "20px",
                         borderRadius: "10px",
                         textAlign: "center",
                     }}
                 >
-                    Game Over
+                    🎉 Congratulations! You've completed all levels! 🎉
                     <br />
-                    Score: {score}
+                    Final Score: {score}
                 </div>
-            )}
-
-            {/* Show "You Won" screen with crackers */}
-            {gameWon && (
-                <>
-                    <Confetti width={800} height={400} />
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: "50%",
-                            left: "50%",
-                            transform: "translate(-50%, -50%)",
-                            fontSize: "30px",
-                            color: "yellow",
-                            backgroundColor: "rgba(0, 0, 0, 0.7)",
-                            padding: "20px",
-                            borderRadius: "10px",
-                            textAlign: "center",
-                        }}
-                    >
-                        🎉 You Won! 🎉
-                        <br />
-                        Final Score: {score}
-                    </div>
-                </>
             )}
         </div>
     );
 };
 
 export default GameCanvas;
-//ref: Chatgpt
+
+
