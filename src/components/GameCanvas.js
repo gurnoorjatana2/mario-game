@@ -54,14 +54,20 @@ const GameCanvas = () => {
 
     // Load level data
     useEffect(() => {
-        const { platforms, enemies, collectibles } = levelData[level];
-        setPlatforms(platforms);
-        setEnemies(enemies);
-        setCollectibles(collectibles);
-        setPlayerPosition({ x: 50, y: 300 }); // Reset character position
-        setIsCharacterAlive(true);
-        setGameWon(false);
+        if (levelData[level]) {
+            const { platforms, enemies, collectibles } = levelData[level];
+            setPlatforms(platforms);
+            setEnemies(enemies);
+            setCollectibles(collectibles);
+            setPlayerPosition({ x: 50, y: 300 }); // Reset character position
+            setIsCharacterAlive(true);
+            setGameWon(false);
+        } else {
+            console.error(`Level ${level} is not defined in levelData.`);
+            setGameWon(true); // End game if there are no more levels
+        }
     }, [level]);
+    
 
     // Handle collectible collection
     const handleCollect = (collectibleId) => {
