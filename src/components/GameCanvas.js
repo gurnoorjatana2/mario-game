@@ -113,29 +113,88 @@ const GameCanvas = () => {
     }, []);
 
     return (
-        <div style={backgroundStyle}>
-            <div style={{ position: "absolute", top: "10px", left: "10px", fontSize: "20px", color: "white" }}>
+        <div
+            style={{
+                position: "relative",
+                width: "800px",
+                height: "400px",
+                overflow: "hidden",
+                border: "2px solid black",
+                background: "url(/assets/background.png) no-repeat center",
+                backgroundSize: "cover",
+            }}
+        >
+            <div
+                style={{
+                    position: "absolute",
+                    top: "10px",
+                    left: "10px",
+                    fontSize: "20px",
+                    color: "white",
+                }}
+            >
                 Score: {score}
             </div>
-            <div style={{ position: "absolute", top: "10px", right: "10px", fontSize: "20px", color: "white" }}>
+            <div
+                style={{
+                    position: "absolute",
+                    top: "10px",
+                    right: "10px",
+                    fontSize: "20px",
+                    color: "white",
+                }}
+            >
                 Level: {level}
             </div>
-            <button onClick={() => setLevel(level)} style={{ position: "absolute", top: "50px", left: "10px", padding: "10px", backgroundColor: "red", color: "white", borderRadius: "5px" }}>
+            <button
+                onClick={() => setLevel(level)}
+                style={{
+                    position: "absolute",
+                    top: "50px",
+                    left: "10px",
+                    padding: "10px",
+                    backgroundColor: "red",
+                    color: "white",
+                    borderRadius: "5px",
+                }}
+            >
                 Restart Level
             </button>
             {platforms.map((platform) => (
                 <Platform key={platform.id} {...platform} color={platform.id === 3 ? "gray" : "brown"} />
             ))}
             {collectibles.map((collectible) =>
-                !collectible.collected && <Collectible key={collectible.id} {...collectible} playerPosition={playerPosition} onCollect={() => handleCollect(collectible.id)} />
+                !collectible.collected && (
+                    <Collectible
+                        key={collectible.id}
+                        {...collectible}
+                        playerPosition={playerPosition}
+                        onCollect={() => handleCollect(collectible.id)}
+                    />
+                )
             )}
             {enemies.map((enemy) =>
                 enemy.isAlive && <Enemy key={enemy.id} enemy={enemy} playerPosition={playerPosition} onEnemyCollision={handleEnemyCollision} />
             )}
             {isCharacterAlive && !gameWon && <Character onPositionUpdate={setPlayerPosition} platforms={platforms} enemies={enemies} onEnemyCollision={handleEnemyCollision} />}
-            {gameWon && <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", fontSize: "30px", color: "yellow", textAlign: "center" }}>🎉 Congratulations! You completed all levels! 🎉</div>}
+            {gameWon && (
+                <div
+                    style={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        fontSize: "30px",
+                        color: "yellow",
+                        textAlign: "center",
+                    }}
+                >
+                    🎉 Congratulations! You completed all levels! 🎉
+                </div>
+            )}
         </div>
     );
 };
 
 export default GameCanvas;
+
