@@ -50,7 +50,9 @@ const GameCanvas = () => {
                 { id: 3, x: 400, y: 170, collected: false },
             ],
         },
+        // Add more levels here...
     };
+    
 
     // Load level data
     useEffect(() => {
