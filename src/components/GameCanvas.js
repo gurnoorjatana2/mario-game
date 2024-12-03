@@ -201,3 +201,4 @@ const GameCanvas = () => {
 };
 
 export default GameCanvas;
+//ref: Chatgpt
