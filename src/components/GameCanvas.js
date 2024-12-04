@@ -39,7 +39,7 @@ const GameCanvas = () => {
         return () => backgroundMusic.stop();
     }, []);
 
-    // Dynamically load more obstacles as the player moves forward
+    // Load more obstacles dynamically as the player moves
     useEffect(() => {
         if (playerPosition.x > worldEnd - 400) {
             const newEnd = worldEnd + 800;
@@ -74,12 +74,12 @@ const GameCanvas = () => {
     // Adjust camera position based on the character's movement
     useEffect(() => {
         const visibleWidth = 800; // Width of the viewport
-        const scrollThreshold = 300; // Position where scrolling starts
+        const scrollThreshold = 400; // Position where scrolling starts
 
         if (playerPosition.x > cameraOffset + scrollThreshold) {
             setCameraOffset(playerPosition.x - scrollThreshold);
-        } else if (playerPosition.x < cameraOffset + 200) {
-            setCameraOffset(Math.max(0, playerPosition.x - 200));
+        } else if (playerPosition.x < cameraOffset + 100) {
+            setCameraOffset(Math.max(0, playerPosition.x - 100));
         }
     }, [playerPosition.x, cameraOffset]);
 
@@ -251,7 +251,7 @@ const GameCanvas = () => {
                         borderRadius: "10px",
                     }}
                 >
-                    🎉 Congratulations! You've reached all checkpoints! 🎉
+                    🎉 Congratulations! You've completed the game! 🎉
                 </div>
             )}
         </div>
@@ -259,7 +259,6 @@ const GameCanvas = () => {
 };
 
 export default GameCanvas;
-
 
 
 
