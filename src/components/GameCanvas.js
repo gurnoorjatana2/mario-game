@@ -18,10 +18,6 @@ const GameCanvas = () => {
     const [collectibles, setCollectibles] = useState([
         { id: 1, x: 400, y: 270, collected: false },
     ]);
-    const [checkpoints, setCheckpoints] = useState([
-        { id: 1, x: 1000, y: 350, reached: false },
-        { id: 2, x: 2000, y: 350, reached: false },
-    ]);
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
     const [gameWon, setGameWon] = useState(false);
     const [worldEnd, setWorldEnd] = useState(800); // Initial world width
@@ -63,13 +59,8 @@ const GameCanvas = () => {
                 { id: collectibles.length + 2, x: newEnd - 150, y: 220, collected: false },
             ];
             setCollectibles((prev) => [...prev, ...newCollectibles]);
-
-            const newCheckpoints = [
-                { id: checkpoints.length + 1, x: newEnd - 100, y: 350, reached: false },
-            ];
-            setCheckpoints((prev) => [...prev, ...newCheckpoints]);
         }
-    }, [playerPosition.x, worldEnd, platforms, enemies, collectibles, checkpoints]);
+    }, [playerPosition.x, worldEnd, platforms, enemies, collectibles]);
 
     // Adjust camera position based on the character's movement
     useEffect(() => {
@@ -106,22 +97,6 @@ const GameCanvas = () => {
             setIsCharacterAlive(false);
         }
     };
-
-    // Check if the player has reached a checkpoint
-    useEffect(() => {
-        setCheckpoints((prev) =>
-            prev.map((checkpoint) =>
-                playerPosition.x > checkpoint.x && !checkpoint.reached
-                    ? { ...checkpoint, reached: true }
-                    : checkpoint
-            )
-        );
-
-        const allCheckpointsReached = checkpoints.every((checkpoint) => checkpoint.reached);
-        if (allCheckpointsReached) {
-            setGameWon(true); // End the game when all checkpoints are reached
-        }
-    }, [playerPosition.x, checkpoints]);
 
     return (
         <div
@@ -188,22 +163,6 @@ const GameCanvas = () => {
                         )
                 )}
 
-                {/* Render checkpoints */}
-                {checkpoints.map((checkpoint) => (
-                    <div
-                        key={checkpoint.id}
-                        style={{
-                            position: "absolute",
-                            left: `${checkpoint.x}px`,
-                            top: `${checkpoint.y}px`,
-                            width: "20px",
-                            height: "20px",
-                            backgroundColor: checkpoint.reached ? "green" : "yellow",
-                            borderRadius: "50%",
-                        }}
-                    ></div>
-                ))}
-
                 {/* Render character */}
                 {isCharacterAlive && (
                     <Character
@@ -259,6 +218,7 @@ const GameCanvas = () => {
 };
 
 export default GameCanvas;
+
 
 
 
