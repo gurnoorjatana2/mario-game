@@ -15,7 +15,7 @@ const GameCanvas = () => {
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
     const [gameWon, setGameWon] = useState(false);
 
-    // Define levels
+    // Level data
     const levelData = {
         1: {
             platforms: [
@@ -50,27 +50,9 @@ const GameCanvas = () => {
                 { id: 3, x: 400, y: 170, collected: false },
             ],
         },
-        3: {
-            platforms: [
-                { id: 1, x: 50, y: 300, width: 100, height: 20 },
-                { id: 2, x: 250, y: 250, width: 100, height: 20 },
-                { id: 3, x: 450, y: 200, width: 100, height: 20 },
-                { id: 4, x: 0, y: 380, width: 800, height: 20 }, // Ground
-            ],
-            enemies: [
-                { id: 1, x: 150, y: 270, isAlive: true, range: 200 },
-                { id: 2, x: 350, y: 250, isAlive: true, range: 150 },
-                { id: 3, x: 550, y: 200, isAlive: true, range: 100 },
-            ],
-            collectibles: [
-                { id: 1, x: 100, y: 270, collected: false },
-                { id: 2, x: 300, y: 220, collected: false },
-                { id: 3, x: 500, y: 170, collected: false },
-            ],
-        },
     };
 
-    // Load level data
+    // Load level
     const loadLevel = (level) => {
         if (levelData[level]) {
             const { platforms, enemies, collectibles } = levelData[level];
@@ -81,7 +63,7 @@ const GameCanvas = () => {
             setIsCharacterAlive(true);
             setGameWon(false);
         } else {
-            setGameWon(true); // No more levels
+            setGameWon(true); // Show "You Won" if no more levels
         }
     };
 
@@ -96,7 +78,7 @@ const GameCanvas = () => {
                 collectible.id === collectibleId ? { ...collectible, collected: true } : collectible
             )
         );
-        setScore((prev) => prev + 5); // Add 5 points per collectible
+        setScore((prev) => prev + 5); // Add points
     };
 
     // Handle enemy collision
@@ -107,27 +89,27 @@ const GameCanvas = () => {
                     enemy.id === enemyId ? { ...enemy, isAlive: false } : enemy
                 )
             );
-            setScore((prev) => prev + 10); // Bonus for defeating an enemy
+            setScore((prev) => prev + 10); // Add points
         } else {
             setIsCharacterAlive(false);
         }
     };
 
-    // Check win condition
+    // Win condition
     useEffect(() => {
         const allEnemiesDefeated = enemies.every((enemy) => !enemy.isAlive);
         const allCollectiblesCollected = collectibles.every((collectible) => collectible.collected);
 
         if (allEnemiesDefeated && allCollectiblesCollected) {
             if (level < Object.keys(levelData).length) {
-                setLevel((prev) => prev + 1); // Move to the next level
+                setLevel((prev) => prev + 1); // Next level
             } else {
-                setGameWon(true); // Game completed
+                setGameWon(true); // Game complete
             }
         }
     }, [enemies, collectibles, level]);
 
-    // Background music setup
+    // Background music
     useEffect(() => {
         const backgroundMusic = new Howl({
             src: ["/assets/background-music.mp3"],
@@ -151,6 +133,7 @@ const GameCanvas = () => {
                 backgroundSize: "cover",
             }}
         >
+            {/* Score and Level */}
             <div
                 style={{
                     position: "absolute",
@@ -174,7 +157,7 @@ const GameCanvas = () => {
                 Level: {level}
             </div>
 
-            {/* Restart Level Button */}
+            {/* Restart Button */}
             <button
                 onClick={() => loadLevel(level)}
                 style={{
@@ -191,12 +174,12 @@ const GameCanvas = () => {
                 Restart Level
             </button>
 
-            {/* Render platforms */}
+            {/* Platforms */}
             {platforms.map((platform) => (
                 <Platform key={platform.id} {...platform} color={platform.id === 3 ? "gray" : "brown"} />
             ))}
 
-            {/* Render collectibles */}
+            {/* Collectibles */}
             {collectibles.map(
                 (collectible) =>
                     !collectible.collected && (
@@ -209,7 +192,7 @@ const GameCanvas = () => {
                     )
             )}
 
-            {/* Render enemies */}
+            {/* Enemies */}
             {enemies.map(
                 (enemy) =>
                     enemy.isAlive && (
@@ -222,7 +205,7 @@ const GameCanvas = () => {
                     )
             )}
 
-            {/* Render character if alive */}
+            {/* Character */}
             {isCharacterAlive && !gameWon && (
                 <Character
                     onPositionUpdate={setPlayerPosition}
@@ -232,7 +215,7 @@ const GameCanvas = () => {
                 />
             )}
 
-            {/* Show "You Won" screen */}
+            {/* Game Complete */}
             {gameWon && (
                 <div
                     style={{
@@ -249,8 +232,6 @@ const GameCanvas = () => {
                     }}
                 >
                     🎉 Congratulations! You've completed all levels! 🎉
-                    <br />
-                    Final Score: {score}
                 </div>
             )}
         </div>
@@ -258,6 +239,7 @@ const GameCanvas = () => {
 };
 
 export default GameCanvas;
+
 
 
 
