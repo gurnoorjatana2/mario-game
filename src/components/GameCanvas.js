@@ -20,7 +20,8 @@ const GameCanvas = () => {
     ]);
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
     const [gameWon, setGameWon] = useState(false);
-    const [worldEnd, setWorldEnd] = useState(800); // Initial width of the game world
+    const [worldEnd, setWorldEnd] = useState(800); // Initial world width
+    const [cameraOffset, setCameraOffset] = useState(0); // Camera scroll position
 
     // Background music setup
     useEffect(() => {
@@ -34,14 +35,12 @@ const GameCanvas = () => {
         return () => backgroundMusic.stop();
     }, []);
 
-    // Load more obstacles as the player moves forward
+    // Load more obstacles dynamically as the player moves
     useEffect(() => {
         if (playerPosition.x > worldEnd - 400) {
-            // Extend the world
             const newEnd = worldEnd + 800;
             setWorldEnd(newEnd);
 
-            // Add new platforms
             const newPlatforms = [
                 { id: platforms.length + 1, x: newEnd - 600, y: 300, width: 150, height: 20 },
                 { id: platforms.length + 2, x: newEnd - 200, y: 250, width: 100, height: 20 },
@@ -49,14 +48,12 @@ const GameCanvas = () => {
             ];
             setPlatforms((prev) => [...prev, ...newPlatforms]);
 
-            // Add new enemies
             const newEnemies = [
                 { id: enemies.length + 1, x: newEnd - 500, y: 270, isAlive: true, range: 150 },
                 { id: enemies.length + 2, x: newEnd - 300, y: 250, isAlive: true, range: 100 },
             ];
             setEnemies((prev) => [...prev, ...newEnemies]);
 
-            // Add new collectibles
             const newCollectibles = [
                 { id: collectibles.length + 1, x: newEnd - 450, y: 270, collected: false },
                 { id: collectibles.length + 2, x: newEnd - 150, y: 220, collected: false },
@@ -64,6 +61,18 @@ const GameCanvas = () => {
             setCollectibles((prev) => [...prev, ...newCollectibles]);
         }
     }, [playerPosition.x, worldEnd, platforms, enemies, collectibles]);
+
+    // Adjust camera position based on the character's movement
+    useEffect(() => {
+        const visibleWidth = 800; // Width of the viewport
+        const scrollThreshold = 400; // Position where scrolling starts
+
+        if (playerPosition.x > cameraOffset + scrollThreshold) {
+            setCameraOffset(playerPosition.x - scrollThreshold);
+        } else if (playerPosition.x < cameraOffset + 100) {
+            setCameraOffset(Math.max(0, playerPosition.x - 100));
+        }
+    }, [playerPosition.x, cameraOffset]);
 
     // Handle collectible collection
     const handleCollect = (collectibleId) => {
@@ -114,46 +123,56 @@ const GameCanvas = () => {
                 Score: {score}
             </div>
 
-            {/* Render platforms */}
-            {platforms.map((platform) => (
-                <Platform key={platform.id} {...platform} color={platform.id === 3 ? "gray" : "brown"} />
-            ))}
+            {/* Render game elements with camera offset */}
+            <div
+                style={{
+                    position: "absolute",
+                    left: `-${cameraOffset}px`,
+                    width: `${worldEnd}px`,
+                    height: "400px",
+                }}
+            >
+                {/* Render platforms */}
+                {platforms.map((platform) => (
+                    <Platform key={platform.id} {...platform} color={platform.id === 3 ? "gray" : "brown"} />
+                ))}
 
-            {/* Render collectibles */}
-            {collectibles.map(
-                (collectible) =>
-                    !collectible.collected && (
-                        <Collectible
-                            key={collectible.id}
-                            {...collectible}
-                            playerPosition={playerPosition}
-                            onCollect={() => handleCollect(collectible.id)}
-                        />
-                    )
-            )}
+                {/* Render collectibles */}
+                {collectibles.map(
+                    (collectible) =>
+                        !collectible.collected && (
+                            <Collectible
+                                key={collectible.id}
+                                {...collectible}
+                                playerPosition={playerPosition}
+                                onCollect={() => handleCollect(collectible.id)}
+                            />
+                        )
+                )}
 
-            {/* Render enemies */}
-            {enemies.map(
-                (enemy) =>
-                    enemy.isAlive && (
-                        <Enemy
-                            key={enemy.id}
-                            enemy={enemy}
-                            playerPosition={playerPosition}
-                            onEnemyCollision={handleEnemyCollision}
-                        />
-                    )
-            )}
+                {/* Render enemies */}
+                {enemies.map(
+                    (enemy) =>
+                        enemy.isAlive && (
+                            <Enemy
+                                key={enemy.id}
+                                enemy={enemy}
+                                playerPosition={playerPosition}
+                                onEnemyCollision={handleEnemyCollision}
+                            />
+                        )
+                )}
 
-            {/* Render character */}
-            {isCharacterAlive && (
-                <Character
-                    onPositionUpdate={setPlayerPosition}
-                    platforms={platforms}
-                    enemies={enemies}
-                    onEnemyCollision={handleEnemyCollision}
-                />
-            )}
+                {/* Render character */}
+                {isCharacterAlive && (
+                    <Character
+                        onPositionUpdate={setPlayerPosition}
+                        platforms={platforms}
+                        enemies={enemies}
+                        onEnemyCollision={handleEnemyCollision}
+                    />
+                )}
+            </div>
 
             {/* Show "Game Over" screen */}
             {!isCharacterAlive && (
@@ -199,6 +218,7 @@ const GameCanvas = () => {
 };
 
 export default GameCanvas;
+
 
 
 
