@@ -15,7 +15,7 @@ const GameCanvas = () => {
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
     const [gameWon, setGameWon] = useState(false);
 
-    // Define level data
+    // Define levels
     const levelData = {
         1: {
             platforms: [
@@ -50,6 +50,24 @@ const GameCanvas = () => {
                 { id: 3, x: 400, y: 170, collected: false },
             ],
         },
+        3: {
+            platforms: [
+                { id: 1, x: 50, y: 300, width: 100, height: 20 },
+                { id: 2, x: 250, y: 250, width: 100, height: 20 },
+                { id: 3, x: 450, y: 200, width: 100, height: 20 },
+                { id: 4, x: 0, y: 380, width: 800, height: 20 }, // Ground
+            ],
+            enemies: [
+                { id: 1, x: 150, y: 270, isAlive: true, range: 200 },
+                { id: 2, x: 350, y: 250, isAlive: true, range: 150 },
+                { id: 3, x: 550, y: 200, isAlive: true, range: 100 },
+            ],
+            collectibles: [
+                { id: 1, x: 100, y: 270, collected: false },
+                { id: 2, x: 300, y: 220, collected: false },
+                { id: 3, x: 500, y: 170, collected: false },
+            ],
+        },
     };
 
     // Load level data
@@ -59,12 +77,11 @@ const GameCanvas = () => {
             setPlatforms(platforms || []);
             setEnemies(enemies || []);
             setCollectibles(collectibles || []);
-            setPlayerPosition({ x: 50, y: 300 }); // Reset character position
+            setPlayerPosition({ x: 50, y: 300 });
             setIsCharacterAlive(true);
             setGameWon(false);
         } else {
-            console.error(`Level ${level} is not defined in levelData.`);
-            setGameWon(true); // End game if no more levels
+            setGameWon(true); // No more levels
         }
     };
 
@@ -134,7 +151,6 @@ const GameCanvas = () => {
                 backgroundSize: "cover",
             }}
         >
-            {/* Display the score and level */}
             <div
                 style={{
                     position: "absolute",
@@ -242,5 +258,6 @@ const GameCanvas = () => {
 };
 
 export default GameCanvas;
+
 
 
