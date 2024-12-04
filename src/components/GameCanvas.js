@@ -4,64 +4,23 @@ import Platform from "./Platform";
 import Enemy from "./Enemy";
 import Collectible from "./Collectible";
 import { Howl } from "howler";
-import Confetti from "react-confetti"; // Install via `npm install react-confetti`
 
 const GameCanvas = () => {
     const [score, setScore] = useState(0);
     const [playerPosition, setPlayerPosition] = useState({ x: 50, y: 300 });
+    const [platforms, setPlatforms] = useState([
+        { id: 1, x: 0, y: 380, width: 800, height: 20 }, // Initial ground platform
+        { id: 2, x: 300, y: 300, width: 100, height: 20 },
+    ]);
     const [enemies, setEnemies] = useState([
-        { id: 1, x: 200, y: 270, isAlive: true, range: 100 },
-        { id: 2, x: 500, y: 270, isAlive: true, range: 100 },
+        { id: 1, x: 500, y: 270, isAlive: true, range: 100 },
     ]);
     const [collectibles, setCollectibles] = useState([
-        { id: 1, x: 120, y: 270, collected: false },
-        { id: 2, x: 320, y: 170, collected: false },
+        { id: 1, x: 400, y: 270, collected: false },
     ]);
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
     const [gameWon, setGameWon] = useState(false);
-
-    // Define platforms
-    const platforms = [
-        { id: 1, x: 100, y: 300, width: 100, height: 20 },
-        { id: 2, x: 300, y: 200, width: 100, height: 20 },
-        { id: 3, x: 0, y: 380, width: 800, height: 20 },
-    ];
-
-    // Handle collectible collection
-    const handleCollect = (collectibleId) => {
-        setCollectibles((prevCollectibles) =>
-            prevCollectibles.map((collectible) =>
-                collectible.id === collectibleId ? { ...collectible, collected: true } : collectible
-            )
-        );
-        setScore((prevScore) => prevScore + 5); // Add 5 points per collectible
-    };
-
-    // Handle enemy collision
-    const handleEnemyCollision = (enemyId, wasJumpedOn) => {
-        if (wasJumpedOn) {
-            // Kill the enemy
-            setEnemies((prevEnemies) =>
-                prevEnemies.map((enemy) =>
-                    enemy.id === enemyId ? { ...enemy, isAlive: false } : enemy
-                )
-            );
-            setScore((prevScore) => prevScore + 10); // Bonus for defeating an enemy
-        } else {
-            // Character dies
-            setIsCharacterAlive(false);
-        }
-    };
-
-    // Check win condition
-    useEffect(() => {
-        const allEnemiesDefeated = enemies.every((enemy) => !enemy.isAlive);
-        const allCollectiblesCollected = collectibles.every((collectible) => collectible.collected);
-
-        if (allEnemiesDefeated && allCollectiblesCollected) {
-            setGameWon(true);
-        }
-    }, [enemies, collectibles]);
+    const [worldEnd, setWorldEnd] = useState(800); // Initial width of the game world
 
     // Background music setup
     useEffect(() => {
@@ -72,9 +31,63 @@ const GameCanvas = () => {
         });
 
         backgroundMusic.play();
-
         return () => backgroundMusic.stop();
     }, []);
+
+    // Load more obstacles as the player moves forward
+    useEffect(() => {
+        if (playerPosition.x > worldEnd - 400) {
+            // Extend the world
+            const newEnd = worldEnd + 800;
+            setWorldEnd(newEnd);
+
+            // Add new platforms
+            const newPlatforms = [
+                { id: platforms.length + 1, x: newEnd - 600, y: 300, width: 150, height: 20 },
+                { id: platforms.length + 2, x: newEnd - 200, y: 250, width: 100, height: 20 },
+                { id: platforms.length + 3, x: newEnd, y: 380, width: 800, height: 20 }, // Ground extension
+            ];
+            setPlatforms((prev) => [...prev, ...newPlatforms]);
+
+            // Add new enemies
+            const newEnemies = [
+                { id: enemies.length + 1, x: newEnd - 500, y: 270, isAlive: true, range: 150 },
+                { id: enemies.length + 2, x: newEnd - 300, y: 250, isAlive: true, range: 100 },
+            ];
+            setEnemies((prev) => [...prev, ...newEnemies]);
+
+            // Add new collectibles
+            const newCollectibles = [
+                { id: collectibles.length + 1, x: newEnd - 450, y: 270, collected: false },
+                { id: collectibles.length + 2, x: newEnd - 150, y: 220, collected: false },
+            ];
+            setCollectibles((prev) => [...prev, ...newCollectibles]);
+        }
+    }, [playerPosition.x, worldEnd, platforms, enemies, collectibles]);
+
+    // Handle collectible collection
+    const handleCollect = (collectibleId) => {
+        setCollectibles((prev) =>
+            prev.map((collectible) =>
+                collectible.id === collectibleId ? { ...collectible, collected: true } : collectible
+            )
+        );
+        setScore((prev) => prev + 5);
+    };
+
+    // Handle enemy collision
+    const handleEnemyCollision = (enemyId, wasJumpedOn) => {
+        if (wasJumpedOn) {
+            setEnemies((prev) =>
+                prev.map((enemy) =>
+                    enemy.id === enemyId ? { ...enemy, isAlive: false } : enemy
+                )
+            );
+            setScore((prev) => prev + 10);
+        } else {
+            setIsCharacterAlive(false);
+        }
+    };
 
     return (
         <div
@@ -88,7 +101,7 @@ const GameCanvas = () => {
                 backgroundSize: "cover",
             }}
         >
-            {/* Display the score */}
+            {/* Display score */}
             <div
                 style={{
                     position: "absolute",
@@ -103,14 +116,7 @@ const GameCanvas = () => {
 
             {/* Render platforms */}
             {platforms.map((platform) => (
-                <Platform
-                    key={platform.id}
-                    x={platform.x}
-                    y={platform.y}
-                    width={platform.width}
-                    height={platform.height}
-                    color={platform.id === 3 ? "gray" : "brown"} // Gray for ground/road, brown for others
-                />
+                <Platform key={platform.id} {...platform} color={platform.id === 3 ? "gray" : "brown"} />
             ))}
 
             {/* Render collectibles */}
@@ -119,8 +125,7 @@ const GameCanvas = () => {
                     !collectible.collected && (
                         <Collectible
                             key={collectible.id}
-                            x={collectible.x}
-                            y={collectible.y}
+                            {...collectible}
                             playerPosition={playerPosition}
                             onCollect={() => handleCollect(collectible.id)}
                         />
@@ -140,8 +145,8 @@ const GameCanvas = () => {
                     )
             )}
 
-            {/* Render character if alive */}
-            {isCharacterAlive && !gameWon && (
+            {/* Render character */}
+            {isCharacterAlive && (
                 <Character
                     onPositionUpdate={setPlayerPosition}
                     platforms={platforms}
@@ -150,7 +155,7 @@ const GameCanvas = () => {
                 />
             )}
 
-            {/* Show game over message if character is not alive */}
+            {/* Show "Game Over" screen */}
             {!isCharacterAlive && (
                 <div
                     style={{
@@ -159,48 +164,42 @@ const GameCanvas = () => {
                         left: "50%",
                         transform: "translate(-50%, -50%)",
                         fontSize: "30px",
-                        color: "white",
-                        backgroundColor: "rgba(0, 0, 0, 0.7)",
+                        color: "yellow",
+                        textAlign: "center",
+                        backgroundColor: "rgba(0, 0, 0, 0.8)",
                         padding: "20px",
                         borderRadius: "10px",
-                        textAlign: "center",
                     }}
                 >
-                    Game Over
-                    <br />
-                    Score: {score}
+                    Game Over! Try Again!
                 </div>
             )}
 
-            {/* Show "You Won" screen with crackers */}
+            {/* Show "You Won" screen */}
             {gameWon && (
-                <>
-                    <Confetti width={800} height={400} />
-                    <div
-                        style={{
-                            position: "absolute",
-                            top: "50%",
-                            left: "50%",
-                            transform: "translate(-50%, -50%)",
-                            fontSize: "30px",
-                            color: "yellow",
-                            backgroundColor: "rgba(0, 0, 0, 0.7)",
-                            padding: "20px",
-                            borderRadius: "10px",
-                            textAlign: "center",
-                        }}
-                    >
-                        🎉 You Won! 🎉
-                        <br />
-                        Final Score: {score}
-                    </div>
-                </>
+                <div
+                    style={{
+                        position: "absolute",
+                        top: "50%",
+                        left: "50%",
+                        transform: "translate(-50%, -50%)",
+                        fontSize: "30px",
+                        color: "yellow",
+                        textAlign: "center",
+                        backgroundColor: "rgba(0, 0, 0, 0.8)",
+                        padding: "20px",
+                        borderRadius: "10px",
+                    }}
+                >
+                    🎉 Congratulations! You've completed the game! 🎉
+                </div>
             )}
         </div>
     );
 };
 
 export default GameCanvas;
+
 
 
 
