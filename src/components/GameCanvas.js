@@ -15,12 +15,13 @@ const GameCanvas = () => {
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
     const [gameWon, setGameWon] = useState(false);
 
+    // Define level data
     const levelData = {
         1: {
             platforms: [
                 { id: 1, x: 100, y: 300, width: 100, height: 20 },
                 { id: 2, x: 300, y: 200, width: 100, height: 20 },
-                { id: 3, x: 0, y: 380, width: 800, height: 20 },
+                { id: 3, x: 0, y: 380, width: 800, height: 20 }, // Ground
             ],
             enemies: [
                 { id: 1, x: 200, y: 270, isAlive: true, range: 100 },
@@ -36,7 +37,7 @@ const GameCanvas = () => {
                 { id: 1, x: 50, y: 300, width: 100, height: 20 },
                 { id: 2, x: 200, y: 250, width: 100, height: 20 },
                 { id: 3, x: 350, y: 200, width: 100, height: 20 },
-                { id: 4, x: 0, y: 380, width: 800, height: 20 },
+                { id: 4, x: 0, y: 380, width: 800, height: 20 }, // Ground
             ],
             enemies: [
                 { id: 1, x: 100, y: 270, isAlive: true, range: 150 },
@@ -51,30 +52,37 @@ const GameCanvas = () => {
         },
     };
 
-    useEffect(() => {
+    // Load level data
+    const loadLevel = (level) => {
         if (levelData[level]) {
             const { platforms, enemies, collectibles } = levelData[level];
             setPlatforms(platforms || []);
             setEnemies(enemies || []);
             setCollectibles(collectibles || []);
-            setPlayerPosition({ x: 50, y: 300 });
+            setPlayerPosition({ x: 50, y: 300 }); // Reset character position
             setIsCharacterAlive(true);
             setGameWon(false);
         } else {
             console.error(`Level ${level} is not defined in levelData.`);
-            setGameWon(true);
+            setGameWon(true); // End game if no more levels
         }
+    };
+
+    useEffect(() => {
+        loadLevel(level);
     }, [level]);
 
+    // Handle collectible collection
     const handleCollect = (collectibleId) => {
         setCollectibles((prev) =>
             prev.map((collectible) =>
                 collectible.id === collectibleId ? { ...collectible, collected: true } : collectible
             )
         );
-        setScore((prev) => prev + 5);
+        setScore((prev) => prev + 5); // Add 5 points per collectible
     };
 
+    // Handle enemy collision
     const handleEnemyCollision = (enemyId, wasJumpedOn) => {
         if (wasJumpedOn) {
             setEnemies((prev) =>
@@ -82,25 +90,27 @@ const GameCanvas = () => {
                     enemy.id === enemyId ? { ...enemy, isAlive: false } : enemy
                 )
             );
-            setScore((prev) => prev + 10);
+            setScore((prev) => prev + 10); // Bonus for defeating an enemy
         } else {
             setIsCharacterAlive(false);
         }
     };
 
+    // Check win condition
     useEffect(() => {
         const allEnemiesDefeated = enemies.every((enemy) => !enemy.isAlive);
         const allCollectiblesCollected = collectibles.every((collectible) => collectible.collected);
 
         if (allEnemiesDefeated && allCollectiblesCollected) {
             if (level < Object.keys(levelData).length) {
-                setLevel((prev) => prev + 1);
+                setLevel((prev) => prev + 1); // Move to the next level
             } else {
-                setGameWon(true);
+                setGameWon(true); // Game completed
             }
         }
     }, [enemies, collectibles, level]);
 
+    // Background music setup
     useEffect(() => {
         const backgroundMusic = new Howl({
             src: ["/assets/background-music.mp3"],
@@ -124,6 +134,7 @@ const GameCanvas = () => {
                 backgroundSize: "cover",
             }}
         >
+            {/* Display the score and level */}
             <div
                 style={{
                     position: "absolute",
@@ -146,8 +157,10 @@ const GameCanvas = () => {
             >
                 Level: {level}
             </div>
+
+            {/* Restart Level Button */}
             <button
-                onClick={() => setLevel(level)}
+                onClick={() => loadLevel(level)}
                 style={{
                     position: "absolute",
                     top: "50px",
@@ -156,27 +169,54 @@ const GameCanvas = () => {
                     backgroundColor: "red",
                     color: "white",
                     borderRadius: "5px",
+                    cursor: "pointer",
                 }}
             >
                 Restart Level
             </button>
+
+            {/* Render platforms */}
             {platforms.map((platform) => (
                 <Platform key={platform.id} {...platform} color={platform.id === 3 ? "gray" : "brown"} />
             ))}
-            {collectibles.map((collectible) =>
-                !collectible.collected && (
-                    <Collectible
-                        key={collectible.id}
-                        {...collectible}
-                        playerPosition={playerPosition}
-                        onCollect={() => handleCollect(collectible.id)}
-                    />
-                )
+
+            {/* Render collectibles */}
+            {collectibles.map(
+                (collectible) =>
+                    !collectible.collected && (
+                        <Collectible
+                            key={collectible.id}
+                            {...collectible}
+                            playerPosition={playerPosition}
+                            onCollect={() => handleCollect(collectible.id)}
+                        />
+                    )
             )}
-            {enemies.map((enemy) =>
-                enemy.isAlive && <Enemy key={enemy.id} enemy={enemy} playerPosition={playerPosition} onEnemyCollision={handleEnemyCollision} />
+
+            {/* Render enemies */}
+            {enemies.map(
+                (enemy) =>
+                    enemy.isAlive && (
+                        <Enemy
+                            key={enemy.id}
+                            enemy={enemy}
+                            playerPosition={playerPosition}
+                            onEnemyCollision={handleEnemyCollision}
+                        />
+                    )
             )}
-            {isCharacterAlive && !gameWon && <Character onPositionUpdate={setPlayerPosition} platforms={platforms} enemies={enemies} onEnemyCollision={handleEnemyCollision} />}
+
+            {/* Render character if alive */}
+            {isCharacterAlive && !gameWon && (
+                <Character
+                    onPositionUpdate={setPlayerPosition}
+                    platforms={platforms}
+                    enemies={enemies}
+                    onEnemyCollision={handleEnemyCollision}
+                />
+            )}
+
+            {/* Show "You Won" screen */}
             {gameWon && (
                 <div
                     style={{
@@ -186,10 +226,15 @@ const GameCanvas = () => {
                         transform: "translate(-50%, -50%)",
                         fontSize: "30px",
                         color: "yellow",
+                        backgroundColor: "rgba(0, 0, 0, 0.7)",
+                        padding: "20px",
+                        borderRadius: "10px",
                         textAlign: "center",
                     }}
                 >
-                    🎉 Congratulations! You completed all levels! 🎉
+                    🎉 Congratulations! You've completed all levels! 🎉
+                    <br />
+                    Final Score: {score}
                 </div>
             )}
         </div>
@@ -197,4 +242,5 @@ const GameCanvas = () => {
 };
 
 export default GameCanvas;
+
 
