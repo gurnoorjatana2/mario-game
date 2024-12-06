@@ -9,19 +9,22 @@ const GameCanvas = () => {
     const [score, setScore] = useState(0);
     const [playerPosition, setPlayerPosition] = useState({ x: 50, y: 300 });
     const [platforms, setPlatforms] = useState([
-        { id: 1, x: 0, y: 380, width: 800, height: 20 }, // Initial ground platform
+        { id: 1, x: 0, y: 380, width: 800, height: 20 }, // Ground
         { id: 2, x: 300, y: 300, width: 100, height: 20 },
+        { id: 3, x: 600, y: 200, width: 100, height: 20 },
     ]);
     const [enemies, setEnemies] = useState([
-        { id: 1, x: 500, y: 270, isAlive: true, range: 100 },
+        { id: 1, x: 500, y: 270, isAlive: true },
+        { id: 2, x: 700, y: 170, isAlive: true },
     ]);
     const [collectibles, setCollectibles] = useState([
         { id: 1, x: 400, y: 270, collected: false },
+        { id: 2, x: 650, y: 170, collected: false },
     ]);
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
     const [gameWon, setGameWon] = useState(false);
-    const [worldEnd, setWorldEnd] = useState(800); // Initial world width
-    const [cameraOffset, setCameraOffset] = useState(0); // Camera scroll position
+    const finishLine = 800; // Position of the finish line
+    const [cameraOffset, setCameraOffset] = useState(0); // Camera position
 
     // Background music setup
     useEffect(() => {
@@ -35,37 +38,10 @@ const GameCanvas = () => {
         return () => backgroundMusic.stop();
     }, []);
 
-    // Load more obstacles dynamically as the player moves
+    // Adjust camera position
     useEffect(() => {
-        if (playerPosition.x > worldEnd - 400) {
-            const newEnd = worldEnd + 800;
-            setWorldEnd(newEnd);
-
-            const newPlatforms = [
-                { id: platforms.length + 1, x: newEnd - 600, y: 300, width: 150, height: 20 },
-                { id: platforms.length + 2, x: newEnd - 200, y: 250, width: 100, height: 20 },
-                { id: platforms.length + 3, x: newEnd, y: 380, width: 800, height: 20 }, // Ground extension
-            ];
-            setPlatforms((prev) => [...prev, ...newPlatforms]);
-
-            const newEnemies = [
-                { id: enemies.length + 1, x: newEnd - 500, y: 270, isAlive: true, range: 150 },
-                { id: enemies.length + 2, x: newEnd - 300, y: 250, isAlive: true, range: 100 },
-            ];
-            setEnemies((prev) => [...prev, ...newEnemies]);
-
-            const newCollectibles = [
-                { id: collectibles.length + 1, x: newEnd - 450, y: 270, collected: false },
-                { id: collectibles.length + 2, x: newEnd - 150, y: 220, collected: false },
-            ];
-            setCollectibles((prev) => [...prev, ...newCollectibles]);
-        }
-    }, [playerPosition.x, worldEnd, platforms, enemies, collectibles]);
-
-    // Adjust camera position based on the character's movement
-    useEffect(() => {
-        const visibleWidth = 800; // Width of the viewport
-        const scrollThreshold = 400; // Position where scrolling starts
+        const visibleWidth = 800; // Viewport width
+        const scrollThreshold = 400; // Where scrolling starts
 
         if (playerPosition.x > cameraOffset + scrollThreshold) {
             setCameraOffset(playerPosition.x - scrollThreshold);
@@ -92,11 +68,21 @@ const GameCanvas = () => {
                     enemy.id === enemyId ? { ...enemy, isAlive: false } : enemy
                 )
             );
-            setScore((prev) => prev + 10);
+            setScore((prev) => prev + 10); // Bonus for defeating an enemy
         } else {
-            setIsCharacterAlive(false);
+            setIsCharacterAlive(false); // Character dies
         }
     };
+
+    // Check if game is won
+    useEffect(() => {
+        const allEnemiesDefeated = enemies.every((enemy) => !enemy.isAlive);
+        const allCollectiblesCollected = collectibles.every((collectible) => collectible.collected);
+
+        if (allEnemiesDefeated && allCollectiblesCollected && playerPosition.x > finishLine) {
+            setGameWon(true);
+        }
+    }, [enemies, collectibles, playerPosition.x]);
 
     return (
         <div
@@ -110,7 +96,7 @@ const GameCanvas = () => {
                 backgroundSize: "cover",
             }}
         >
-            {/* Display score */}
+            {/* Display Score */}
             <div
                 style={{
                     position: "absolute",
@@ -128,13 +114,20 @@ const GameCanvas = () => {
                 style={{
                     position: "absolute",
                     left: `-${cameraOffset}px`,
-                    width: `${worldEnd}px`,
+                    width: "1200px", // Game world width
                     height: "400px",
                 }}
             >
                 {/* Render platforms */}
                 {platforms.map((platform) => (
-                    <Platform key={platform.id} {...platform} color={platform.id === 3 ? "gray" : "brown"} />
+                    <Platform
+                        key={platform.id}
+                        x={platform.x}
+                        y={platform.y}
+                        width={platform.width}
+                        height={platform.height}
+                        color="brown"
+                    />
                 ))}
 
                 {/* Render collectibles */}
@@ -143,7 +136,8 @@ const GameCanvas = () => {
                         !collectible.collected && (
                             <Collectible
                                 key={collectible.id}
-                                {...collectible}
+                                x={collectible.x}
+                                y={collectible.y}
                                 playerPosition={playerPosition}
                                 onCollect={() => handleCollect(collectible.id)}
                             />
@@ -163,6 +157,18 @@ const GameCanvas = () => {
                         )
                 )}
 
+                {/* Render finish line */}
+                <div
+                    style={{
+                        position: "absolute",
+                        left: `${finishLine}px`,
+                        top: "330px",
+                        width: "20px",
+                        height: "50px",
+                        backgroundColor: "red",
+                    }}
+                ></div>
+
                 {/* Render character */}
                 {isCharacterAlive && (
                     <Character
@@ -174,7 +180,7 @@ const GameCanvas = () => {
                 )}
             </div>
 
-            {/* Show "Game Over" screen */}
+            {/* Game Over Screen */}
             {!isCharacterAlive && (
                 <div
                     style={{
@@ -194,7 +200,7 @@ const GameCanvas = () => {
                 </div>
             )}
 
-            {/* Show "You Won" screen */}
+            {/* You Won Screen */}
             {gameWon && (
                 <div
                     style={{
@@ -210,7 +216,7 @@ const GameCanvas = () => {
                         borderRadius: "10px",
                     }}
                 >
-                    🎉 Congratulations! You've completed the game! 🎉
+                    🎉 Congratulations! You Won! 🎉
                 </div>
             )}
         </div>
