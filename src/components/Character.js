@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Howl } from "howler";
-import turbanGuy from "../assets/char.png"; // Ensure the image exists in this path
+import char from "../assets/char.png";
 
 const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) => {
     const [position, setPosition] = useState({ x: 50, y: 300 });
@@ -12,14 +12,14 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
         src: ["/assets/jump.mp3"],
     });
 
-    // Function to check collision with platforms
+    // Check collision with platforms
     const checkCollisionWithPlatforms = (x, y) => {
         for (const platform of platforms) {
             const isColliding =
                 x + 30 > platform.x && // Character's right edge > Platform's left edge
                 x < platform.x + platform.width && // Character's left edge < Platform's right edge
                 y + 50 >= platform.y && // Character's bottom edge >= Platform's top edge
-                y + 50 <= platform.y + 10; // Allow for slight height variation
+                y + 50 <= platform.y + 10; // Allow for small height variance
 
             if (isColliding) {
                 return platform; // Return the platform object
@@ -28,7 +28,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
         return null;
     };
 
-    // Function to check collision with enemies
+    // Check collision with enemies
     const checkCollisionWithEnemies = (x, y) => {
         for (const enemy of enemies) {
             if (!enemy.isAlive) continue;
@@ -49,14 +49,14 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
         return false;
     };
 
-    // Add event listeners for movement
+    // Movement event listeners
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === "ArrowRight") setVelocity((v) => ({ ...v, x: 5 }));
             if (e.key === "ArrowLeft") setVelocity((v) => ({ ...v, x: -5 }));
             if (e.key === " " && !isJumping) {
                 jumpSound.play();
-                setVelocity((v) => ({ ...v, y: -18 })); // Higher jump
+                setVelocity((v) => ({ ...v, y: -18 })); // Adjust jump height as needed
                 setIsJumping(true);
                 setCurrentPlatform(null); // Exit platform when jumping
             }
@@ -96,12 +96,12 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                     setCurrentPlatform(null);
                 }
 
-                // Check if character leaves the platform
+                // If on platform, ensure character doesn't fall through it
                 if (
                     currentPlatform &&
                     (newX < currentPlatform.x || newX > currentPlatform.x + currentPlatform.width - 30)
                 ) {
-                    setCurrentPlatform(null);
+                    setCurrentPlatform(null); // Leave platform when character moves off its edge
                 }
 
                 // Check for enemy collision
@@ -128,7 +128,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
 
     return (
         <img
-            src={turbanGuy}
+            src={char}
             alt="Character"
             style={{
                 position: "absolute",
@@ -143,4 +143,3 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
 };
 
 export default Character;
-
