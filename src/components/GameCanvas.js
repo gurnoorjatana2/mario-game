@@ -24,7 +24,7 @@ const GameCanvas = () => {
     const platforms = [
         { id: 1, x: 100, y: 300, width: 100, height: 20 },
         { id: 2, x: 300, y: 200, width: 100, height: 20 },
-        { id: 3, x: 0, y: 380, width: 800, height: 20 },
+        { id: 3, x: 0, y: 380, width: 800, height: 20 }, // Ground/road
     ];
 
     // Handle collectible collection
@@ -172,7 +172,7 @@ const GameCanvas = () => {
                 </div>
             )}
 
-            {/* Show "You Won" screen with crackers */}
+            {/* Show "You Won" screen with confetti */}
             {gameWon && (
                 <>
                     <Confetti width={800} height={400} />
@@ -201,6 +201,7 @@ const GameCanvas = () => {
 };
 
 export default GameCanvas;
+
 
 
 
