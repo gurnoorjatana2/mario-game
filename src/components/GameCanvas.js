@@ -64,7 +64,7 @@ const GameCanvas = () => {
     // Background music
     useEffect(() => {
         const backgroundMusic = new Howl({
-            src: ["/assets/background-music.mp3"],
+            src: ["../assets/background-music.mp3"],
             loop: true,
             volume: 0.5,
         });
@@ -73,6 +73,22 @@ const GameCanvas = () => {
 
         return () => backgroundMusic.stop();
     }, []);
+
+    // Restart Game
+    const restartGame = () => {
+        setScore(0);
+        setPlayerPosition({ x: 50, y: 300 });
+        setEnemies([
+            { id: 1, x: 200, y: 270, isAlive: true, range: 100 },
+            { id: 2, x: 500, y: 270, isAlive: true, range: 100 },
+        ]);
+        setCollectibles([
+            { id: 1, x: 120, y: 270, collected: false },
+            { id: 2, x: 320, y: 170, collected: false },
+        ]);
+        setIsCharacterAlive(true);
+        setGameWon(false);
+    };
 
     return (
         <div
@@ -167,6 +183,17 @@ const GameCanvas = () => {
                     Game Over
                     <br />
                     Score: {score}
+                    <button
+                        onClick={restartGame}
+                        style={{
+                            marginTop: "20px",
+                            padding: "10px 20px",
+                            fontSize: "16px",
+                            cursor: "pointer",
+                        }}
+                    >
+                        Restart
+                    </button>
                 </div>
             )}
 
@@ -191,6 +218,17 @@ const GameCanvas = () => {
                         🎉 You Won! 🎉
                         <br />
                         Final Score: {score}
+                        <button
+                            onClick={restartGame}
+                            style={{
+                                marginTop: "20px",
+                                padding: "10px 20px",
+                                fontSize: "16px",
+                                cursor: "pointer",
+                            }}
+                        >
+                            Play Again
+                        </button>
                     </div>
                 </>
             )}
@@ -199,17 +237,3 @@ const GameCanvas = () => {
 };
 
 export default GameCanvas;
-
-
-
-
-
-
-
-
-
-
-
-
-
-

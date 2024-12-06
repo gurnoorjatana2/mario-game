@@ -10,10 +10,17 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
 
     const CHARACTER_HEIGHT = 50;
     const CHARACTER_WIDTH = 30;
-    const GROUND_LEVEL = 330;
+    const GROUND_LEVEL = 380;
 
+    // Sound Effects
     const jumpSound = new Howl({
-        src: ["/assets/jump.mp3"],
+        src: ["../assets/jump.mp3"],
+        volume: 0.8,
+    });
+
+    const landSound = new Howl({
+        src: ["../assets/land.mp3"],
+        volume: 0.8,
     });
 
     // Check collision with platforms
@@ -23,7 +30,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 x + CHARACTER_WIDTH > platform.x && // Character's right edge > Platform's left edge
                 x < platform.x + platform.width && // Character's left edge < Platform's right edge
                 y + CHARACTER_HEIGHT >= platform.y && // Character's bottom edge >= Platform's top edge
-                y + CHARACTER_HEIGHT <= platform.y + 10; // Small buffer for alignment
+                y + CHARACTER_HEIGHT <= platform.y + 10; // Buffer for alignment
 
             if (isColliding) {
                 return platform;
@@ -53,21 +60,22 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
         return false;
     };
 
-    // Movement event listeners
+    // Handle keydown events for movement and jumping
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === "ArrowRight") setVelocity((v) => ({ ...v, x: 5 }));
             if (e.key === "ArrowLeft") setVelocity((v) => ({ ...v, x: -5 }));
             if (e.key === " " && !isJumping) {
                 jumpSound.play();
-                setVelocity((v) => ({ ...v, y: -18 })); // Higher jump
+                setVelocity((v) => ({ ...v, y: -12 })); // Adjust jump height here
                 setIsJumping(true);
                 setCurrentPlatform(null); // Exit platform when jumping
             }
         };
 
         const handleKeyUp = (e) => {
-            if (e.key === "ArrowRight" || e.key === "ArrowLeft") setVelocity((v) => ({ ...v, x: 0 }));
+            if (e.key === "ArrowRight" || e.key === "ArrowLeft")
+                setVelocity((v) => ({ ...v, x: 0 }));
         };
 
         window.addEventListener("keydown", handleKeyDown);
@@ -89,11 +97,12 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 // Check for platform collision
                 const platform = checkCollisionWithPlatforms(newX, newY);
                 if (platform && velocity.y >= 0) {
-                    newY = platform.y - CHARACTER_HEIGHT; // Align character's bottom with platform's top
+                    newY = platform.y - CHARACTER_HEIGHT; // Align character with platform top
                     setIsJumping(false);
                     setCurrentPlatform(platform);
+                    if (velocity.y > 0) landSound.play(); // Play landing sound
                 } else if (newY >= GROUND_LEVEL) {
-                    newY = GROUND_LEVEL; // Align character with ground level
+                    newY = GROUND_LEVEL; // Align with ground level
                     setIsJumping(false);
                     setCurrentPlatform(null);
                 } else {
@@ -103,7 +112,8 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 // Check if character leaves the platform
                 if (
                     currentPlatform &&
-                    (newX < currentPlatform.x || newX > currentPlatform.x + currentPlatform.width - CHARACTER_WIDTH)
+                    (newX < currentPlatform.x ||
+                        newX > currentPlatform.x + currentPlatform.width - CHARACTER_WIDTH)
                 ) {
                     setCurrentPlatform(null);
                 }
@@ -123,7 +133,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
             // Apply gravity
             setVelocity((v) => ({
                 x: v.x,
-                y: v.y + 1, // Gravity
+                y: Math.min(v.y + 1, 10), // Gravity and terminal velocity
             }));
         }, 20);
 
