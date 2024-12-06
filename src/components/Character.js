@@ -12,6 +12,8 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onC
     const CHARACTER_WIDTH = 30;
     const GROUND_LEVEL = 380;
 
+    const [wasInAir, setWasInAir] = useState(false); // Track if the character was previously in the air
+
     // Sound Effects
     const jumpSound = new Howl({
         src: ["/assets/jump.mp3"],
@@ -84,6 +86,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onC
                 setVelocity((v) => ({ ...v, y: -15 })); // Adjust jump height
                 setIsJumping(true);
                 setCurrentPlatform(null); // Exit platform when jumping
+                setWasInAir(true); // Mark as in the air
             }
         };
 
@@ -114,13 +117,21 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onC
                     newY = platform.y - CHARACTER_HEIGHT;
                     setIsJumping(false);
                     setCurrentPlatform(platform);
-                    if (velocity.y > 0) landSound.play(); // Play landing sound
+                    if (wasInAir) {
+                        landSound.play(); // Play landing sound only once when landing
+                        setWasInAir(false); // Reset the air state after landing
+                    }
                 } else if (newY >= GROUND_LEVEL) {
                     newY = GROUND_LEVEL; // Align with ground level
                     setIsJumping(false);
                     setCurrentPlatform(null);
+                    if (wasInAir) {
+                        landSound.play(); // Play landing sound when hitting the ground
+                        setWasInAir(false); // Reset the air state after landing
+                    }
                 } else {
                     setCurrentPlatform(null);
+                    setWasInAir(true); // Character is in the air
                 }
 
                 // Check if character leaves the platform
@@ -155,7 +166,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onC
         }, 20);
 
         return () => clearInterval(interval);
-    }, [velocity, platforms, currentPlatform, enemies, onEnemyCollision, onPositionUpdate]);
+    }, [velocity, platforms, currentPlatform, enemies, onEnemyCollision, onPositionUpdate, wasInAir]);
 
     return (
         <img
