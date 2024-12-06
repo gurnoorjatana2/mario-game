@@ -56,23 +56,26 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onC
             const enemyLeft = enemy.x;
             const enemyRight = enemy.x + 30;
 
-            const isTouchingSideOrBottom =
-                x + CHARACTER_WIDTH > enemyLeft && // Character's right edge > Enemy's left edge
-                x < enemyRight && // Character's left edge < Enemy's right edge
-                y + CHARACTER_HEIGHT > enemyTop; // Character's bottom edge > Enemy's top edge
-
-            const wasJumpedOn =
+            // Check if the character lands on top of the enemy
+            const landedOnTop =
                 y + CHARACTER_HEIGHT <= enemyTop + 5 && // Character's bottom is above the enemy's top
+                y + CHARACTER_HEIGHT >= enemyTop && // Character's bottom is at the enemy's top
                 velocity.y > 0; // Character is falling
 
-            if (isTouchingSideOrBottom) {
-                if (wasJumpedOn) {
-                    onEnemyCollision(enemy.id, true); // Enemy dies
-                    return false; // Character survives
-                } else {
-                    onEnemyCollision(enemy.id, false); // Character dies
-                    return true; // Character dies
-                }
+            // Check if the character touches the enemy from sides or bottom
+            const touchedSideOrBottom =
+                x + CHARACTER_WIDTH > enemyLeft && // Character's right edge > Enemy's left edge
+                x < enemyRight && // Character's left edge < Enemy's right edge
+                y + CHARACTER_HEIGHT > enemyTop; // Character's bottom edge > Enemy's top
+
+            if (landedOnTop) {
+                onEnemyCollision(enemy.id, true); // Notify parent that the enemy was killed
+                return false; // Character survives
+            }
+
+            if (touchedSideOrBottom) {
+                onEnemyCollision(enemy.id, false); // Notify parent that the character died
+                return true; // Character dies
             }
         }
         return false;
@@ -131,7 +134,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onC
                         setWasInAir(false);
                     }
                 } else if (newY >= GROUND_LEVEL) {
-                    newY = GROUND_LEVEL;
+                    newY = GROUND_LEVEL; // Align with ground level
                     setIsJumping(false);
                     setCurrentPlatform(null);
                     if (wasInAir) {
