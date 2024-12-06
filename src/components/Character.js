@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Howl } from "howler";
-import char from "../assets/char.png";
+import char from "../assets/char.png"; // Ensure the character image is correctly imported
 
 const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) => {
     const [position, setPosition] = useState({ x: 50, y: 300 });
@@ -14,12 +14,12 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
 
     // Sound Effects
     const jumpSound = new Howl({
-        src: ["../assets/jump.mp3"],
+        src: process.env.PUBLIC_URL + "/assets/jump.mp3", // Using `PUBLIC_URL` for correct path
         volume: 0.8,
     });
 
     const landSound = new Howl({
-        src: ["../assets/land.mp3"],
+        src: process.env.PUBLIC_URL + "/assets/land.mp3",
         volume: 0.8,
     });
 
@@ -30,7 +30,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 x + CHARACTER_WIDTH > platform.x && // Character's right edge > Platform's left edge
                 x < platform.x + platform.width && // Character's left edge < Platform's right edge
                 y + CHARACTER_HEIGHT >= platform.y && // Character's bottom edge >= Platform's top edge
-                y + CHARACTER_HEIGHT <= platform.y + 10; // Buffer for alignment
+                y + CHARACTER_HEIGHT <= platform.y + 10; // Small buffer for alignment
 
             if (isColliding) {
                 return platform;
@@ -67,7 +67,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
             if (e.key === "ArrowLeft") setVelocity((v) => ({ ...v, x: -5 }));
             if (e.key === " " && !isJumping) {
                 jumpSound.play();
-                setVelocity((v) => ({ ...v, y: -12 })); // Adjust jump height here
+                setVelocity((v) => ({ ...v, y: -15 })); // Adjust jump height
                 setIsJumping(true);
                 setCurrentPlatform(null); // Exit platform when jumping
             }
