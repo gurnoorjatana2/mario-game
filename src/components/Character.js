@@ -174,7 +174,7 @@ const Character = ({
                 x: v.x,
                 y: Math.min(v.y + 1, 10),
             }));
-        }, 20);
+        }, 30);
 
         return () => clearInterval(interval);
     }, [velocity, platforms, currentPlatform, enemies, onEnemyCollision, onPositionUpdate, wasInAir]);
