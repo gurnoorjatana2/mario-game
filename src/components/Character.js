@@ -119,7 +119,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
 
     return (
         <img
-            src="/assets/turban-guy.png" // Make sure the image is in the assets folder
+            src="src/assets/0b99ed16-24cb-4413-83e3-4c506f707e09.jpg" // Make sure the image is in the assets folder
             alt="Character"
             style={{
                 position: "absolute",
