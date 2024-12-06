@@ -12,7 +12,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onC
     const CHARACTER_WIDTH = 30;
     const GROUND_LEVEL = 380;
 
-    const [wasInAir, setWasInAir] = useState(false); // Track if the character was previously in the air
+    const [wasInAir, setWasInAir] = useState(false);
 
     // Sound Effects
     const jumpSound = new Howl({
@@ -51,19 +51,28 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onC
         for (const enemy of enemies) {
             if (!enemy.isAlive) continue;
 
-            const isColliding =
-                x + CHARACTER_WIDTH > enemy.x &&
-                x < enemy.x + 30 &&
-                y + CHARACTER_HEIGHT > enemy.y &&
-                y < enemy.y + 30;
+            const enemyTop = enemy.y;
+            const enemyBottom = enemy.y + 30;
+            const enemyLeft = enemy.x;
+            const enemyRight = enemy.x + 30;
+
+            const isTouchingSideOrBottom =
+                x + CHARACTER_WIDTH > enemyLeft && // Character's right edge > Enemy's left edge
+                x < enemyRight && // Character's left edge < Enemy's right edge
+                y + CHARACTER_HEIGHT > enemyTop; // Character's bottom edge > Enemy's top edge
 
             const wasJumpedOn =
-                y + CHARACTER_HEIGHT <= enemy.y + 5 && // Character is above enemy
+                y + CHARACTER_HEIGHT <= enemyTop + 5 && // Character's bottom is above the enemy's top
                 velocity.y > 0; // Character is falling
 
-            if (isColliding) {
-                onEnemyCollision(enemy.id, wasJumpedOn);
-                return !wasJumpedOn; // Return true if character dies, false if enemy dies
+            if (isTouchingSideOrBottom) {
+                if (wasJumpedOn) {
+                    onEnemyCollision(enemy.id, true); // Enemy dies
+                    return false; // Character survives
+                } else {
+                    onEnemyCollision(enemy.id, false); // Character dies
+                    return true; // Character dies
+                }
             }
         }
         return false;
@@ -83,10 +92,10 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onC
             if (e.key === "ArrowLeft") setVelocity((v) => ({ ...v, x: -5 }));
             if (e.key === " " && !isJumping) {
                 jumpSound.play();
-                setVelocity((v) => ({ ...v, y: -15 })); // Adjust jump height
+                setVelocity((v) => ({ ...v, y: -15 }));
                 setIsJumping(true);
                 setCurrentPlatform(null); // Exit platform when jumping
-                setWasInAir(true); // Mark as in the air
+                setWasInAir(true);
             }
         };
 
@@ -118,20 +127,20 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onC
                     setIsJumping(false);
                     setCurrentPlatform(platform);
                     if (wasInAir) {
-                        landSound.play(); // Play landing sound only once when landing
-                        setWasInAir(false); // Reset the air state after landing
+                        landSound.play();
+                        setWasInAir(false);
                     }
                 } else if (newY >= GROUND_LEVEL) {
-                    newY = GROUND_LEVEL; // Align with ground level
+                    newY = GROUND_LEVEL;
                     setIsJumping(false);
                     setCurrentPlatform(null);
                     if (wasInAir) {
-                        landSound.play(); // Play landing sound when hitting the ground
-                        setWasInAir(false); // Reset the air state after landing
+                        landSound.play();
+                        setWasInAir(false);
                     }
                 } else {
                     setCurrentPlatform(null);
-                    setWasInAir(true); // Character is in the air
+                    setWasInAir(true);
                 }
 
                 // Check if character leaves the platform
