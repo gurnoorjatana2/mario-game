@@ -4,7 +4,7 @@ import Platform from "./Platform";
 import Enemy from "./Enemy";
 import Collectible from "./Collectible";
 import { Howl } from "howler";
-import Confetti from "react-confetti"; // Install via `npm install react-confetti`
+import Confetti from "react-confetti";
 
 const GameCanvas = () => {
     const [score, setScore] = useState(0);
@@ -20,35 +20,33 @@ const GameCanvas = () => {
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
     const [gameWon, setGameWon] = useState(false);
 
-    // Define platforms
+    // Platforms
     const platforms = [
-        { id: 1, x: 100, y: 300, width: 100, height: 20 },
-        { id: 2, x: 300, y: 200, width: 100, height: 20 },
-        { id: 3, x: 0, y: 380, width: 800, height: 20 }, // Ground/road
+        { id: 1, x: 100, y: 300, width: 100, height: 20 }, // Regular platform
+        { id: 2, x: 300, y: 200, width: 100, height: 20 }, // Higher platform
+        { id: 3, x: 0, y: 380, width: 800, height: 20 }, // Ground
     ];
 
     // Handle collectible collection
     const handleCollect = (collectibleId) => {
-        setCollectibles((prevCollectibles) =>
-            prevCollectibles.map((collectible) =>
+        setCollectibles((prev) =>
+            prev.map((collectible) =>
                 collectible.id === collectibleId ? { ...collectible, collected: true } : collectible
             )
         );
-        setScore((prevScore) => prevScore + 5); // Add 5 points per collectible
+        setScore((prev) => prev + 5);
     };
 
     // Handle enemy collision
     const handleEnemyCollision = (enemyId, wasJumpedOn) => {
         if (wasJumpedOn) {
-            // Kill the enemy
-            setEnemies((prevEnemies) =>
-                prevEnemies.map((enemy) =>
+            setEnemies((prev) =>
+                prev.map((enemy) =>
                     enemy.id === enemyId ? { ...enemy, isAlive: false } : enemy
                 )
             );
-            setScore((prevScore) => prevScore + 10); // Bonus for defeating an enemy
+            setScore((prev) => prev + 10);
         } else {
-            // Character dies
             setIsCharacterAlive(false);
         }
     };
@@ -63,7 +61,7 @@ const GameCanvas = () => {
         }
     }, [enemies, collectibles]);
 
-    // Background music setup
+    // Background music
     useEffect(() => {
         const backgroundMusic = new Howl({
             src: ["/assets/background-music.mp3"],
@@ -88,7 +86,7 @@ const GameCanvas = () => {
                 backgroundSize: "cover",
             }}
         >
-            {/* Display the score */}
+            {/* Display Score */}
             <div
                 style={{
                     position: "absolute",
@@ -101,7 +99,7 @@ const GameCanvas = () => {
                 Score: {score}
             </div>
 
-            {/* Render platforms */}
+            {/* Render Platforms */}
             {platforms.map((platform) => (
                 <Platform
                     key={platform.id}
@@ -109,11 +107,11 @@ const GameCanvas = () => {
                     y={platform.y}
                     width={platform.width}
                     height={platform.height}
-                    color={platform.id === 3 ? "gray" : "brown"} // Gray for ground/road, brown for others
+                    color={platform.id === 3 ? "gray" : "brown"}
                 />
             ))}
 
-            {/* Render collectibles */}
+            {/* Render Collectibles */}
             {collectibles.map(
                 (collectible) =>
                     !collectible.collected && (
@@ -127,7 +125,7 @@ const GameCanvas = () => {
                     )
             )}
 
-            {/* Render enemies */}
+            {/* Render Enemies */}
             {enemies.map(
                 (enemy) =>
                     enemy.isAlive && (
@@ -140,7 +138,7 @@ const GameCanvas = () => {
                     )
             )}
 
-            {/* Render character if alive */}
+            {/* Render Character */}
             {isCharacterAlive && !gameWon && (
                 <Character
                     onPositionUpdate={setPlayerPosition}
@@ -150,7 +148,7 @@ const GameCanvas = () => {
                 />
             )}
 
-            {/* Show game over message if character is not alive */}
+            {/* Game Over Screen */}
             {!isCharacterAlive && (
                 <div
                     style={{
@@ -172,7 +170,7 @@ const GameCanvas = () => {
                 </div>
             )}
 
-            {/* Show "You Won" screen with confetti */}
+            {/* Victory Screen */}
             {gameWon && (
                 <>
                     <Confetti width={800} height={400} />
@@ -201,6 +199,7 @@ const GameCanvas = () => {
 };
 
 export default GameCanvas;
+
 
 
 
