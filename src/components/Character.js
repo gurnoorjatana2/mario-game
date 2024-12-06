@@ -10,7 +10,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
 
     const CHARACTER_HEIGHT = 50;
     const CHARACTER_WIDTH = 30;
-    const GROUND_LEVEL = 380;
+    const GROUND_LEVEL = 330;
 
     const jumpSound = new Howl({
         src: ["/assets/jump.mp3"],
