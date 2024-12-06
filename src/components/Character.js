@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Howl } from "howler";
-import turbanGuy from "../assets/char.png"; // Ensure the image exists in the correct path
+import turbanGuy from "../assets/char.png"; // Ensure the image exists in this path
 
 const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) => {
     const [position, setPosition] = useState({ x: 50, y: 300 });
@@ -49,14 +49,14 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
         return false;
     };
 
-    // Event listeners for character movement
+    // Event listeners for movement
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === "ArrowRight") setVelocity((v) => ({ ...v, x: 5 }));
             if (e.key === "ArrowLeft") setVelocity((v) => ({ ...v, x: -5 }));
             if (e.key === " " && !isJumping) {
                 jumpSound.play();
-                setVelocity((v) => ({ ...v, y: -15 })); // Higher jump
+                setVelocity((v) => ({ ...v, y: -18 })); // Higher jump
                 setIsJumping(true);
                 setCurrentPlatform(null); // Exit platform when jumping
             }
@@ -82,7 +82,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 let newX = pos.x + velocity.x;
                 let newY = pos.y + velocity.y;
 
-                // Check collision with platforms
+                // Check platform collision
                 const platform = checkCollisionWithPlatforms(newX, newY);
                 if (platform && newY + 50 >= platform.y && velocity.y >= 0) {
                     newY = platform.y - 50; // Align character's bottom with platform's top
@@ -96,14 +96,15 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                     setCurrentPlatform(null);
                 }
 
-                // Restrict movement to platform boundaries if on a platform
-                if (currentPlatform) {
-                    if (newX < currentPlatform.x || newX > currentPlatform.x + currentPlatform.width - 30) {
-                        setCurrentPlatform(null); // Leave platform if moving off its edge
-                    }
+                // Check if the character has moved off the current platform
+                if (
+                    currentPlatform &&
+                    (newX < currentPlatform.x || newX > currentPlatform.x + currentPlatform.width - 30)
+                ) {
+                    setCurrentPlatform(null);
                 }
 
-                // Check collision with enemies
+                // Check enemy collision
                 const died = checkCollisionWithEnemies(newX, newY);
                 if (died) {
                     newY = 400; // Character "falls" when dying
@@ -142,3 +143,4 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
 };
 
 export default Character;
+
