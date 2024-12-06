@@ -23,7 +23,7 @@ const GameCanvas = () => {
     ]);
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
     const [gameWon, setGameWon] = useState(false);
-    const finishLine = 800; // Position of the finish line
+    const finishLine = 1000; // Position of the finish line
     const [cameraOffset, setCameraOffset] = useState(0); // Camera position
 
     // Background music setup
@@ -74,12 +74,12 @@ const GameCanvas = () => {
         }
     };
 
-    // Check if game is won
+    // Check if the game is won
     useEffect(() => {
         const allEnemiesDefeated = enemies.every((enemy) => !enemy.isAlive);
         const allCollectiblesCollected = collectibles.every((collectible) => collectible.collected);
 
-        if (allEnemiesDefeated && allCollectiblesCollected && playerPosition.x > finishLine) {
+        if (allEnemiesDefeated && allCollectiblesCollected && playerPosition.x >= finishLine) {
             setGameWon(true);
         }
     }, [enemies, collectibles, playerPosition.x]);
@@ -114,7 +114,7 @@ const GameCanvas = () => {
                 style={{
                     position: "absolute",
                     left: `-${cameraOffset}px`,
-                    width: "1200px", // Game world width
+                    width: "1000px", // Fixed game world width
                     height: "400px",
                 }}
             >
@@ -224,6 +224,7 @@ const GameCanvas = () => {
 };
 
 export default GameCanvas;
+
 
 
 
