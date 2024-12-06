@@ -2,7 +2,13 @@ import React, { useState, useEffect } from "react";
 import { Howl } from "howler";
 import char from "../assets/char.png";
 
-const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onCollectibleCollision }) => {
+const Character = ({
+    onPositionUpdate,
+    platforms,
+    enemies,
+    onEnemyCollision,
+    onCollectibleCollision,
+}) => {
     const [position, setPosition] = useState({ x: 50, y: 300 });
     const [velocity, setVelocity] = useState({ x: 0, y: 0 });
     const [isJumping, setIsJumping] = useState(false);
@@ -30,7 +36,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onC
         volume: 0.8,
     });
 
-    // Check collision with platforms
+    // Collision with platforms
     const checkCollisionWithPlatforms = (x, y) => {
         for (const platform of platforms) {
             const isColliding =
@@ -46,7 +52,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onC
         return null;
     };
 
-    // Check collision with enemies
+    // Collision with enemies
     const checkCollisionWithEnemies = (x, y) => {
         for (const enemy of enemies) {
             if (!enemy.isAlive) continue;
@@ -56,39 +62,41 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onC
             const enemyLeft = enemy.x;
             const enemyRight = enemy.x + 30;
 
-            // Check if the character lands on top of the enemy
             const landedOnTop =
-                y + CHARACTER_HEIGHT <= enemyTop + 5 && // Character's bottom is above the enemy's top
-                y + CHARACTER_HEIGHT >= enemyTop && // Character's bottom is at the enemy's top
-                velocity.y > 0; // Character is falling
+                y + CHARACTER_HEIGHT <= enemyTop + 5 &&
+                y + CHARACTER_HEIGHT >= enemyTop &&
+                velocity.y > 0 &&
+                x + CHARACTER_WIDTH > enemyLeft &&
+                x < enemyRight;
 
-            // Check if the character touches the enemy from sides or bottom
             const touchedSideOrBottom =
-                x + CHARACTER_WIDTH > enemyLeft && // Character's right edge > Enemy's left edge
-                x < enemyRight && // Character's left edge < Enemy's right edge
-                y + CHARACTER_HEIGHT > enemyTop; // Character's bottom edge > Enemy's top
+                (y + CHARACTER_HEIGHT > enemyTop &&
+                    y < enemyBottom &&
+                    x + CHARACTER_WIDTH > enemyLeft &&
+                    x < enemyRight) &&
+                !landedOnTop;
 
             if (landedOnTop) {
-                onEnemyCollision(enemy.id, true); // Notify parent that the enemy was killed
-                return false; // Character survives
+                onEnemyCollision(enemy.id, true); // Enemy is killed
+                return false;
             }
 
             if (touchedSideOrBottom) {
-                onEnemyCollision(enemy.id, false); // Notify parent that the character died
-                return true; // Character dies
+                onEnemyCollision(enemy.id, false); // Character dies
+                return true;
             }
         }
         return false;
     };
 
-    // Check collision with collectibles
+    // Collision with collectibles
     const checkCollisionWithCollectibles = (x, y) => {
         onCollectibleCollision?.(x, y, () => {
-            coinSound.play(); // Play coin sound if a collectible is collected
+            coinSound.play();
         });
     };
 
-    // Handle keydown events for movement and jumping
+    // Handle movement keys
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === "ArrowRight") setVelocity((v) => ({ ...v, x: 5 }));
@@ -97,7 +105,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onC
                 jumpSound.play();
                 setVelocity((v) => ({ ...v, y: -15 }));
                 setIsJumping(true);
-                setCurrentPlatform(null); // Exit platform when jumping
+                setCurrentPlatform(null);
                 setWasInAir(true);
             }
         };
@@ -123,7 +131,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onC
                 let newX = pos.x + velocity.x;
                 let newY = pos.y + velocity.y;
 
-                // Check for platform collision
+                // Platform collision
                 const platform = checkCollisionWithPlatforms(newX, newY);
                 if (platform && velocity.y >= 0) {
                     newY = platform.y - CHARACTER_HEIGHT;
@@ -134,7 +142,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onC
                         setWasInAir(false);
                     }
                 } else if (newY >= GROUND_LEVEL) {
-                    newY = GROUND_LEVEL; // Align with ground level
+                    newY = GROUND_LEVEL;
                     setIsJumping(false);
                     setCurrentPlatform(null);
                     if (wasInAir) {
@@ -146,23 +154,14 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onC
                     setWasInAir(true);
                 }
 
-                // Check if character leaves the platform
-                if (
-                    currentPlatform &&
-                    (newX < currentPlatform.x ||
-                        newX > currentPlatform.x + currentPlatform.width - CHARACTER_WIDTH)
-                ) {
-                    setCurrentPlatform(null);
-                }
-
-                // Check for enemy collision
+                // Enemy collision
                 const died = checkCollisionWithEnemies(newX, newY);
                 if (died) {
-                    newY = GROUND_LEVEL + 50; // Character "falls" when dying
+                    newY = GROUND_LEVEL + 50;
                     setIsJumping(false);
                 }
 
-                // Check for collectible collision
+                // Collectible collision
                 checkCollisionWithCollectibles(newX, newY);
 
                 const updatedPosition = { x: newX, y: newY };
@@ -170,10 +169,10 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onC
                 return updatedPosition;
             });
 
-            // Apply gravity
+            // Gravity
             setVelocity((v) => ({
                 x: v.x,
-                y: Math.min(v.y + 1, 10), // Gravity and terminal velocity
+                y: Math.min(v.y + 1, 10),
             }));
         }, 20);
 
