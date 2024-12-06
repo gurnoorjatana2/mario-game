@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Howl } from "howler";
-import char from "../assets/char.png";
+import turbanGuy from "../assets/char.png"; // Ensure the image exists in the correct path
 
 const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) => {
     const [position, setPosition] = useState({ x: 50, y: 300 });
@@ -16,10 +16,10 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
     const checkCollisionWithPlatforms = (x, y) => {
         for (const platform of platforms) {
             const isColliding =
-                x + 30 > platform.x &&
-                x < platform.x + platform.width &&
-                y + 50 >= platform.y &&
-                y + 50 <= platform.y + platform.height;
+                x + 30 > platform.x && // Character's right edge > Platform's left edge
+                x < platform.x + platform.width && // Character's left edge < Platform's right edge
+                y + 50 >= platform.y && // Character's bottom edge >= Platform's top edge
+                y + 50 <= platform.y + platform.height; // Character's bottom edge <= Platform's bottom edge
 
             if (isColliding) {
                 return platform;
@@ -43,20 +43,20 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
 
             if (isColliding) {
                 onEnemyCollision(enemy.id, wasJumpedOn);
-                return !wasJumpedOn;
+                return !wasJumpedOn; // Return true if character dies, false if enemy dies
             }
         }
         return false;
     };
 
-    // Movement event listeners
+    // Event listeners for character movement
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === "ArrowRight") setVelocity((v) => ({ ...v, x: 5 }));
             if (e.key === "ArrowLeft") setVelocity((v) => ({ ...v, x: -5 }));
             if (e.key === " " && !isJumping) {
                 jumpSound.play();
-                setVelocity((v) => ({ ...v, y: -15 }));
+                setVelocity((v) => ({ ...v, y: -15 })); // Higher jump
                 setIsJumping(true);
                 setCurrentPlatform(null); // Exit platform when jumping
             }
@@ -82,10 +82,10 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 let newX = pos.x + velocity.x;
                 let newY = pos.y + velocity.y;
 
-                // Check platform collision
+                // Check collision with platforms
                 const platform = checkCollisionWithPlatforms(newX, newY);
                 if (platform && newY + 50 >= platform.y && velocity.y >= 0) {
-                    newY = platform.y - 50; // Land on platform
+                    newY = platform.y - 50; // Align character's bottom with platform's top
                     setIsJumping(false);
                     setCurrentPlatform(platform);
                 } else if (newY >= 380) {
@@ -96,7 +96,14 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                     setCurrentPlatform(null);
                 }
 
-                // Check enemy collision
+                // Restrict movement to platform boundaries if on a platform
+                if (currentPlatform) {
+                    if (newX < currentPlatform.x || newX > currentPlatform.x + currentPlatform.width - 30) {
+                        setCurrentPlatform(null); // Leave platform if moving off its edge
+                    }
+                }
+
+                // Check collision with enemies
                 const died = checkCollisionWithEnemies(newX, newY);
                 if (died) {
                     newY = 400; // Character "falls" when dying
@@ -120,7 +127,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
 
     return (
         <img
-            src={char} // Make sure the image is in the assets folder
+            src={turbanGuy}
             alt="Character"
             style={{
                 position: "absolute",
@@ -128,7 +135,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 top: `${position.y}px`,
                 width: "30px",
                 height: "50px",
-                transition: "0.1s linear", // Smooth movement
+                transition: "0.1s linear",
             }}
         />
     );
