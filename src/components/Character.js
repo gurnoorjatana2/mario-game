@@ -24,7 +24,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onC
     });
 
     const coinSound = new Howl({
-        src: ["/assets/coin.mp3"], // Place the coin sound file in `public/assets/`
+        src: ["/assets/coin.mp3"],
         volume: 0.8,
     });
 
@@ -55,7 +55,9 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onC
                 y + CHARACTER_HEIGHT > enemy.y &&
                 y < enemy.y + 30;
 
-            const wasJumpedOn = y + CHARACTER_HEIGHT >= enemy.y && y < enemy.y;
+            const wasJumpedOn =
+                y + CHARACTER_HEIGHT <= enemy.y + 5 && // Character is above enemy
+                velocity.y > 0; // Character is falling
 
             if (isColliding) {
                 onEnemyCollision(enemy.id, wasJumpedOn);
@@ -102,46 +104,54 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision, onC
     // Main game loop
     useEffect(() => {
         const interval = setInterval(() => {
-            let newX = position.x + velocity.x;
-            let newY = position.y + velocity.y;
+            setPosition((pos) => {
+                let newX = pos.x + velocity.x;
+                let newY = pos.y + velocity.y;
 
-            // Check for platform collision
-            const platform = checkCollisionWithPlatforms(newX, newY);
-            if (platform && velocity.y >= 0) {
-                newY = platform.y - CHARACTER_HEIGHT;
-                setIsJumping(false);
-                setCurrentPlatform(platform);
-                if (velocity.y > 0) landSound.play(); // Play landing sound
-            } else if (newY >= GROUND_LEVEL) {
-                newY = GROUND_LEVEL; // Align with ground level
-                setIsJumping(false);
-                setCurrentPlatform(null);
-            } else {
-                setCurrentPlatform(null);
-            }
+                // Check for platform collision
+                const platform = checkCollisionWithPlatforms(newX, newY);
+                if (platform && velocity.y >= 0) {
+                    newY = platform.y - CHARACTER_HEIGHT;
+                    setIsJumping(false);
+                    setCurrentPlatform(platform);
+                    if (velocity.y > 0) landSound.play(); // Play landing sound
+                } else if (newY >= GROUND_LEVEL) {
+                    newY = GROUND_LEVEL; // Align with ground level
+                    setIsJumping(false);
+                    setCurrentPlatform(null);
+                } else {
+                    setCurrentPlatform(null);
+                }
 
-            // Check if character leaves the platform
-            if (
-                currentPlatform &&
-                (newX < currentPlatform.x ||
-                    newX > currentPlatform.x + currentPlatform.width - CHARACTER_WIDTH)
-            ) {
-                setCurrentPlatform(null);
-            }
+                // Check if character leaves the platform
+                if (
+                    currentPlatform &&
+                    (newX < currentPlatform.x ||
+                        newX > currentPlatform.x + currentPlatform.width - CHARACTER_WIDTH)
+                ) {
+                    setCurrentPlatform(null);
+                }
 
-            // Check for enemy collision
-            const died = checkCollisionWithEnemies(newX, newY);
-            if (died) {
-                newY = GROUND_LEVEL + 50; // Character "falls" when dying
-                setIsJumping(false);
-            }
+                // Check for enemy collision
+                const died = checkCollisionWithEnemies(newX, newY);
+                if (died) {
+                    newY = GROUND_LEVEL + 50; // Character "falls" when dying
+                    setIsJumping(false);
+                }
 
-            // Check for collectible collision
-            checkCollisionWithCollectibles(newX, newY);
+                // Check for collectible collision
+                checkCollisionWithCollectibles(newX, newY);
 
-            const updatedPosition = { x: newX, y: newY };
-            requestAnimationFrame(() => onPositionUpdate(updatedPosition));
-            setPosition(updatedPosition);
+                const updatedPosition = { x: newX, y: newY };
+                requestAnimationFrame(() => onPositionUpdate(updatedPosition));
+                return updatedPosition;
+            });
+
+            // Apply gravity
+            setVelocity((v) => ({
+                x: v.x,
+                y: Math.min(v.y + 1, 10), // Gravity and terminal velocity
+            }));
         }, 20);
 
         return () => clearInterval(interval);

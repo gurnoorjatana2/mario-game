@@ -27,14 +27,43 @@ const GameCanvas = () => {
         { id: 3, x: 0, y: 380, width: 800, height: 20 }, // Ground
     ];
 
-    // Handle collectible collection
-    const handleCollect = (collectibleId) => {
-        setCollectibles((prev) =>
-            prev.map((collectible) =>
-                collectible.id === collectibleId ? { ...collectible, collected: true } : collectible
-            )
+    // Sounds
+    const backgroundMusic = new Howl({
+        src: ["../assets/background-music.mp3"],
+        loop: true,
+        volume: 0.5,
+    });
+
+    const collectSound = new Howl({
+        src: ["../assets/coin.mp3"],
+        volume: 0.8,
+    });
+
+    // Play Background Music
+    useEffect(() => {
+        backgroundMusic.play();
+        return () => backgroundMusic.stop();
+    }, []);
+
+    // Handle collectible collision
+    const handleCollectibleCollision = (x, y, playSoundCallback) => {
+        setCollectibles((prevCollectibles) =>
+            prevCollectibles.map((collectible) => {
+                const isColliding =
+                    !collectible.collected &&
+                    x + 30 > collectible.x &&
+                    x < collectible.x + 20 &&
+                    y + 50 > collectible.y &&
+                    y < collectible.y + 20;
+
+                if (isColliding) {
+                    playSoundCallback(); // Play collectible sound
+                    return { ...collectible, collected: true };
+                }
+                return collectible;
+            })
         );
-        setScore((prev) => prev + 5);
+        setScore((prevScore) => prevScore + 5); // Increase score by 5 for each collectible
     };
 
     // Handle enemy collision
@@ -60,19 +89,6 @@ const GameCanvas = () => {
             setGameWon(true);
         }
     }, [enemies, collectibles]);
-
-    // Background music
-    useEffect(() => {
-        const backgroundMusic = new Howl({
-            src: ["../assets/background-music.mp3"],
-            loop: true,
-            volume: 0.5,
-        });
-
-        backgroundMusic.play();
-
-        return () => backgroundMusic.stop();
-    }, []);
 
     // Restart Game
     const restartGame = () => {
@@ -136,7 +152,11 @@ const GameCanvas = () => {
                             x={collectible.x}
                             y={collectible.y}
                             playerPosition={playerPosition}
-                            onCollect={() => handleCollect(collectible.id)}
+                            onCollect={() => handleCollectibleCollision(
+                                playerPosition.x,
+                                playerPosition.y,
+                                () => collectSound.play()
+                            )}
                         />
                     )
             )}
@@ -161,6 +181,9 @@ const GameCanvas = () => {
                     platforms={platforms}
                     enemies={enemies}
                     onEnemyCollision={handleEnemyCollision}
+                    onCollectibleCollision={(x, y) =>
+                        handleCollectibleCollision(x, y, () => collectSound.play())
+                    }
                 />
             )}
 
