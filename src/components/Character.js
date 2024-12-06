@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Howl } from "howler";
+import turbanGuy from "../assets/char.png"; // Make sure the image is in the right location
 
 const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) => {
     const [position, setPosition] = useState({ x: 50, y: 300 });
@@ -14,11 +15,13 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
     // Check collision with platforms
     const checkCollisionWithPlatforms = (x, y) => {
         for (const platform of platforms) {
+            const characterBottom = y + 50; // Bottom of the character (image height)
             const isColliding =
-                x + 30 > platform.x &&
-                x < platform.x + platform.width &&
-                y + 50 >= platform.y &&
-                y + 50 <= platform.y + platform.height;
+                x + 30 > platform.x && // Character's right side > Platform's left side
+                x < platform.x + platform.width && // Character's left side < Platform's right side
+                characterBottom >= platform.y && // Character's bottom >= Platform's top
+                characterBottom <= platform.y + 10 && // Character's bottom is not too far into the platform
+                velocity.y >= 0; // Falling down, not going up
 
             if (isColliding) {
                 return platform;
@@ -55,7 +58,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
             if (e.key === "ArrowLeft") setVelocity((v) => ({ ...v, x: -5 }));
             if (e.key === " " && !isJumping) {
                 jumpSound.play();
-                setVelocity((v) => ({ ...v, y: -15 }));
+                setVelocity((v) => ({ ...v, y: -18 }));
                 setIsJumping(true);
                 setCurrentPlatform(null); // Exit platform when jumping
             }
@@ -83,8 +86,8 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
 
                 // Check platform collision
                 const platform = checkCollisionWithPlatforms(newX, newY);
-                if (platform && newY + 50 >= platform.y && velocity.y >= 0) {
-                    newY = platform.y - 50; // Land on platform
+                if (platform) {
+                    newY = platform.y - 50; // Align character's bottom with platform's top
                     setIsJumping(false);
                     setCurrentPlatform(platform);
                 } else if (newY >= 380) {
@@ -119,7 +122,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
 
     return (
         <img
-            src="src/assets/0b99ed16-24cb-4413-83e3-4c506f707e09.jpg" // Make sure the image is in the assets folder
+            src={turbanGuy}
             alt="Character"
             style={{
                 position: "absolute",
@@ -127,15 +130,10 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 top: `${position.y}px`,
                 width: "30px",
                 height: "50px",
-                transition: "0.1s linear", // Smooth movement
+                transition: "0.1s linear",
             }}
         />
     );
 };
 
 export default Character;
-
-
-
-
-
