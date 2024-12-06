@@ -19,7 +19,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 x + 30 > platform.x && // Character's right edge > Platform's left edge
                 x < platform.x + platform.width && // Character's left edge < Platform's right edge
                 y + 50 >= platform.y && // Character's bottom edge >= Platform's top edge
-                y + 50 <= platform.y + 5; // Character's bottom edge is within platform height
+                y + 50 <= platform.y + 10; // Allow for slight height variation
 
             if (isColliding) {
                 return platform; // Return the platform object
@@ -85,7 +85,7 @@ const Character = ({ onPositionUpdate, platforms, enemies, onEnemyCollision }) =
                 // Check for platform collision
                 const platform = checkCollisionWithPlatforms(newX, newY);
                 if (platform && velocity.y >= 0) {
-                    newY = platform.y - 50; // Land on the platform
+                    newY = platform.y - 50; // Align character's bottom with platform's top
                     setIsJumping(false);
                     setCurrentPlatform(platform);
                 } else if (newY >= 380) {
