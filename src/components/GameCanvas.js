@@ -9,7 +9,7 @@ import Confetti from "react-confetti";
 const GameCanvas = () => {
     const [score, setScore] = useState(0);
     const [playerPosition, setPlayerPosition] = useState({ x: 50, y: 300 });
-    const [worldOffset, setWorldOffset] = useState(0); // Controls the scroll effect of the game world
+    const [worldOffset, setWorldOffset] = useState(0);
     const [enemies, setEnemies] = useState([
         { id: 1, x: 200, y: 270, isAlive: true, range: 100 },
         { id: 2, x: 500, y: 270, isAlive: true, range: 100 },
@@ -18,17 +18,16 @@ const GameCanvas = () => {
         { id: 1, x: 120, y: 270, collected: false },
         { id: 2, x: 320, y: 170, collected: false },
     ]);
+    const [platforms, setPlatforms] = useState([
+        { id: 1, x: 100, y: 300, width: 100, height: 20 },
+        { id: 2, x: 300, y: 200, width: 100, height: 20 },
+        { id: 3, x: 0, y: 380, width: 2000, height: 20 }, // Ground
+    ]);
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
     const [gameWon, setGameWon] = useState(false);
+    const [nextObstacleX, setNextObstacleX] = useState(800); // Track the next obstacle position
 
-    // Platforms
-    const platforms = [
-        { id: 1, x: 100, y: 300, width: 100, height: 20 }, // Regular platform
-        { id: 2, x: 300, y: 200, width: 100, height: 20 }, // Higher platform
-        { id: 3, x: 0, y: 380, width: 2000, height: 20 }, // Long ground
-    ];
-
-    const CANVAS_WIDTH = 800; // Screen width
+    const CANVAS_WIDTH = 800;
     const CANVAS_HEIGHT = 400;
 
     // Handle collectible collection
@@ -55,15 +54,65 @@ const GameCanvas = () => {
         }
     };
 
+    // Generate new obstacles dynamically
+    useEffect(() => {
+        if (playerPosition.x > nextObstacleX - CANVAS_WIDTH) {
+            // Add new platforms
+            setPlatforms((prev) => [
+                ...prev,
+                {
+                    id: prev.length + 1,
+                    x: nextObstacleX + Math.random() * 300 + 100,
+                    y: Math.random() * (CANVAS_HEIGHT - 200) + 100,
+                    width: 100,
+                    height: 20,
+                },
+            ]);
+
+            // Add new enemies
+            setEnemies((prev) => [
+                ...prev,
+                {
+                    id: prev.length + 1,
+                    x: nextObstacleX + Math.random() * 300 + 200,
+                    y: Math.random() * (CANVAS_HEIGHT - 150) + 150,
+                    isAlive: true,
+                    range: Math.random() * 100 + 50,
+                },
+            ]);
+
+            // Add new collectibles
+            setCollectibles((prev) => [
+                ...prev,
+                {
+                    id: prev.length + 1,
+                    x: nextObstacleX + Math.random() * 300 + 150,
+                    y: Math.random() * (CANVAS_HEIGHT - 200) + 100,
+                    collected: false,
+                },
+            ]);
+
+            // Update the position for the next set of obstacles
+            setNextObstacleX((prev) => prev + 800);
+        }
+    }, [playerPosition.x, nextObstacleX]);
+
     // Check win condition
     useEffect(() => {
         const allEnemiesDefeated = enemies.every((enemy) => !enemy.isAlive);
         const allCollectiblesCollected = collectibles.every((collectible) => collectible.collected);
 
-        if (allEnemiesDefeated && allCollectiblesCollected) {
+        if (allEnemiesDefeated && allCollectiblesCollected && playerPosition.x > 3000) {
             setGameWon(true);
         }
-    }, [enemies, collectibles]);
+    }, [enemies, collectibles, playerPosition.x]);
+
+    // Update world offset based on character position
+    useEffect(() => {
+        if (playerPosition.x > CANVAS_WIDTH / 2) {
+            setWorldOffset(playerPosition.x - CANVAS_WIDTH / 2);
+        }
+    }, [playerPosition]);
 
     // Background music
     useEffect(() => {
@@ -77,13 +126,6 @@ const GameCanvas = () => {
 
         return () => backgroundMusic.stop();
     }, []);
-
-    // Update world offset based on character position
-    useEffect(() => {
-        if (playerPosition.x > CANVAS_WIDTH / 2 && playerPosition.x < 2000 - CANVAS_WIDTH / 2) {
-            setWorldOffset(playerPosition.x - CANVAS_WIDTH / 2);
-        }
-    }, [playerPosition]);
 
     return (
         <div
@@ -105,7 +147,6 @@ const GameCanvas = () => {
                     left: "10px",
                     fontSize: "20px",
                     color: "white",
-                    zIndex: 2, // Ensure HUD stays above game content
                 }}
             >
                 Score: {score}
@@ -115,7 +156,7 @@ const GameCanvas = () => {
             <div
                 style={{
                     position: "relative",
-                    width: "2000px", // Total width of the game world
+                    width: "4000px",
                     height: `${CANVAS_HEIGHT}px`,
                     transform: `translateX(-${worldOffset}px)`,
                 }}
