@@ -10,6 +10,7 @@ const GameCanvas = () => {
     const [score, setScore] = useState(0);
     const [playerPosition, setPlayerPosition] = useState({ x: 50, y: 300 });
     const [worldOffset, setWorldOffset] = useState(0);
+    const [screenShiftCount, setScreenShiftCount] = useState(0); // Track screen shifts
     const [enemies, setEnemies] = useState([
         { id: 1, x: 200, y: 270, isAlive: true, range: 100 },
         { id: 2, x: 500, y: 270, isAlive: true, range: 100 },
@@ -91,18 +92,16 @@ const GameCanvas = () => {
             ]);
 
             setNextPlatformX((prev) => prev + 800); // Update the next platform position
+            setScreenShiftCount((prev) => prev + 1); // Increment screen shift count
         }
     }, [playerPosition.x, nextPlatformX]);
 
     // Check win condition
     useEffect(() => {
-        const allEnemiesDefeated = enemies.every((enemy) => !enemy.isAlive);
-        const allCollectiblesCollected = collectibles.every((collectible) => collectible.collected);
-
-        if (allEnemiesDefeated && allCollectiblesCollected && playerPosition.x > 3000) {
-            setGameWon(true);
+        if (screenShiftCount >= 2) {
+            setGameWon(true); // End game after 2 screen shifts
         }
-    }, [enemies, collectibles, playerPosition.x]);
+    }, [screenShiftCount]);
 
     // Update world offset based on character position
     useEffect(() => {
