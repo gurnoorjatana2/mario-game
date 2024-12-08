@@ -29,6 +29,14 @@ const GameCanvas = () => {
     const CANVAS_WIDTH = 800;
     const CANVAS_HEIGHT = 400;
 
+    // Sound effects
+    const coinSound = new Howl({ src: ["/assets/coin.mp3"], volume: 0.8 });
+    const backgroundMusic = new Howl({
+        src: ["/assets/background-music.mp3"],
+        loop: true,
+        volume: 0.5,
+    });
+
     // Handle collectible collection
     const handleCollect = (collectibleId) => {
         setCollectibles((prev) =>
@@ -37,6 +45,7 @@ const GameCanvas = () => {
             )
         );
         setScore((prev) => prev + 5);
+        coinSound.play();
     };
 
     // Handle enemy collision
@@ -53,9 +62,9 @@ const GameCanvas = () => {
         }
     };
 
-    // Generate continuous ground and new platforms
+    // Generate continuous ground and new obstacles
     useEffect(() => {
-        if (playerPosition.x > nextPlatformX - CANVAS_WIDTH) {
+        if (playerPosition.x > nextPlatformX - CANVAS_WIDTH / 2) {
             // Add new ground segment
             setPlatforms((prev) => [
                 ...prev,
@@ -110,16 +119,9 @@ const GameCanvas = () => {
         }
     }, [playerPosition]);
 
-    // Background music
+    // Background music setup
     useEffect(() => {
-        const backgroundMusic = new Howl({
-            src: ["../assets/background-music.mp3"],
-            loop: true,
-            volume: 0.5,
-        });
-
         backgroundMusic.play();
-
         return () => backgroundMusic.stop();
     }, []);
 
