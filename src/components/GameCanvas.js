@@ -20,50 +20,25 @@ const GameCanvas = () => {
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
     const [gameWon, setGameWon] = useState(false);
 
+    const [canvasOffset, setCanvasOffset] = useState(0); // Offset for scrolling canvas
+    const CANVAS_WIDTH = 800;
+    const CANVAS_HEIGHT = 400;
+
     // Platforms
     const platforms = [
-        { id: 1, x: 100, y: 300, width: 100, height: 20 }, // Regular platform
-        { id: 2, x: 300, y: 200, width: 100, height: 20 }, // Higher platform
-        { id: 3, x: 0, y: 380, width: 800, height: 20 }, // Ground
+        { id: 1, x: 100, y: 300, width: 100, height: 20 },
+        { id: 2, x: 300, y: 200, width: 100, height: 20 },
+        { id: 3, x: 0, y: 380, width: 1600, height: 20 }, // Ground spans the entire level
     ];
 
-    // Sounds
-    const backgroundMusic = new Howl({
-        src: ["../assets/background-music.mp3"],
-        loop: true,
-        volume: 0.5,
-    });
-
-    const collectSound = new Howl({
-        src: ["../assets/coin.mp3"],
-        volume: 0.8,
-    });
-
-    // Play Background Music
-    useEffect(() => {
-        backgroundMusic.play();
-        return () => backgroundMusic.stop();
-    }, []);
-
-    // Handle collectible collision
-    const handleCollectibleCollision = (x, y, playSoundCallback) => {
-        setCollectibles((prevCollectibles) =>
-            prevCollectibles.map((collectible) => {
-                const isColliding =
-                    !collectible.collected &&
-                    x + 30 > collectible.x &&
-                    x < collectible.x + 20 &&
-                    y + 50 > collectible.y &&
-                    y < collectible.y + 20;
-
-                if (isColliding) {
-                    playSoundCallback(); // Play collectible sound
-                    return { ...collectible, collected: true };
-                }
-                return collectible;
-            })
+    // Handle collectible collection
+    const handleCollect = (collectibleId) => {
+        setCollectibles((prev) =>
+            prev.map((collectible) =>
+                collectible.id === collectibleId ? { ...collectible, collected: true } : collectible
+            )
         );
-        setScore((prevScore) => prevScore + 5); // Increase score by 5 for each collectible
+        setScore((prev) => prev + 5);
     };
 
     // Handle enemy collision
@@ -90,6 +65,26 @@ const GameCanvas = () => {
         }
     }, [enemies, collectibles]);
 
+    // Background music
+    useEffect(() => {
+        const backgroundMusic = new Howl({
+            src: ["../assets/background-music.mp3"],
+            loop: true,
+            volume: 0.5,
+        });
+
+        backgroundMusic.play();
+
+        return () => backgroundMusic.stop();
+    }, []);
+
+    // Scroll canvas dynamically based on character's position
+    useEffect(() => {
+        if (playerPosition.x > CANVAS_WIDTH / 2) {
+            setCanvasOffset(playerPosition.x - CANVAS_WIDTH / 2);
+        }
+    }, [playerPosition]);
+
     // Restart Game
     const restartGame = () => {
         setScore(0);
@@ -104,18 +99,21 @@ const GameCanvas = () => {
         ]);
         setIsCharacterAlive(true);
         setGameWon(false);
+        setCanvasOffset(0); // Reset canvas offset
     };
 
     return (
         <div
             style={{
                 position: "relative",
-                width: "800px",
-                height: "400px",
+                width: `${CANVAS_WIDTH}px`,
+                height: `${CANVAS_HEIGHT}px`,
                 overflow: "hidden",
                 border: "2px solid black",
-                background: "url(/assets/background.png) no-repeat center",
+                background: "url(/assets/background.png) repeat-x", // Continuous background
                 backgroundSize: "cover",
+                transform: `translateX(-${canvasOffset}px)`, // Apply canvas scrolling
+                transition: "transform 0.1s linear",
             }}
         >
             {/* Display Score */}
@@ -123,7 +121,7 @@ const GameCanvas = () => {
                 style={{
                     position: "absolute",
                     top: "10px",
-                    left: "10px",
+                    left: `${canvasOffset + 10}px`, // Adjust based on canvas offset
                     fontSize: "20px",
                     color: "white",
                 }}
@@ -135,7 +133,7 @@ const GameCanvas = () => {
             {platforms.map((platform) => (
                 <Platform
                     key={platform.id}
-                    x={platform.x}
+                    x={platform.x - canvasOffset}
                     y={platform.y}
                     width={platform.width}
                     height={platform.height}
@@ -149,14 +147,10 @@ const GameCanvas = () => {
                     !collectible.collected && (
                         <Collectible
                             key={collectible.id}
-                            x={collectible.x}
+                            x={collectible.x - canvasOffset}
                             y={collectible.y}
                             playerPosition={playerPosition}
-                            onCollect={() => handleCollectibleCollision(
-                                playerPosition.x,
-                                playerPosition.y,
-                                () => collectSound.play()
-                            )}
+                            onCollect={() => handleCollect(collectible.id)}
                         />
                     )
             )}
@@ -167,7 +161,10 @@ const GameCanvas = () => {
                     enemy.isAlive && (
                         <Enemy
                             key={enemy.id}
-                            enemy={enemy}
+                            enemy={{
+                                ...enemy,
+                                x: enemy.x - canvasOffset, // Adjust enemy position for scrolling
+                            }}
                             playerPosition={playerPosition}
                             onEnemyCollision={handleEnemyCollision}
                         />
@@ -178,12 +175,12 @@ const GameCanvas = () => {
             {isCharacterAlive && !gameWon && (
                 <Character
                     onPositionUpdate={setPlayerPosition}
-                    platforms={platforms}
+                    platforms={platforms.map((platform) => ({
+                        ...platform,
+                        x: platform.x - canvasOffset, // Adjust platform position for scrolling
+                    }))}
                     enemies={enemies}
                     onEnemyCollision={handleEnemyCollision}
-                    onCollectibleCollision={(x, y) =>
-                        handleCollectibleCollision(x, y, () => collectSound.play())
-                    }
                 />
             )}
 
@@ -223,7 +220,7 @@ const GameCanvas = () => {
             {/* Victory Screen */}
             {gameWon && (
                 <>
-                    <Confetti width={800} height={400} />
+                    <Confetti width={CANVAS_WIDTH} height={CANVAS_HEIGHT} />
                     <div
                         style={{
                             position: "absolute",
@@ -260,3 +257,4 @@ const GameCanvas = () => {
 };
 
 export default GameCanvas;
+
