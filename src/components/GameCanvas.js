@@ -10,7 +10,7 @@ const GameCanvas = () => {
     const [score, setScore] = useState(0);
     const [playerPosition, setPlayerPosition] = useState({ x: 50, y: 300 });
     const [worldOffset, setWorldOffset] = useState(0);
-    const [screenShiftCount, setScreenShiftCount] = useState(0); // Track screen shifts
+    const [screenShiftCount, setScreenShiftCount] = useState(0); // Count screen shifts
     const [enemies, setEnemies] = useState([
         { id: 1, x: 200, y: 270, isAlive: true, range: 100 },
         { id: 2, x: 500, y: 270, isAlive: true, range: 100 },
@@ -24,7 +24,7 @@ const GameCanvas = () => {
     ]);
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
     const [gameWon, setGameWon] = useState(false);
-    const [nextPlatformX, setNextPlatformX] = useState(800); // Track the position for the next platform
+    const [nextPlatformX, setNextPlatformX] = useState(800); // Track the next platform position
 
     const CANVAS_WIDTH = 800;
     const CANVAS_HEIGHT = 400;
@@ -62,10 +62,10 @@ const GameCanvas = () => {
         }
     };
 
-    // Generate continuous ground and new obstacles
+    // Generate continuous platforms and new obstacles
     useEffect(() => {
         if (playerPosition.x > nextPlatformX - CANVAS_WIDTH / 2) {
-            // Add new ground segment
+            // Add new platform segment
             setPlatforms((prev) => [
                 ...prev,
                 {
