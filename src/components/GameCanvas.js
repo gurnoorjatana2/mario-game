@@ -167,7 +167,7 @@ const GameCanvas = () => {
                         y={platform.y}
                         width={platform.width}
                         height={platform.height}
-                        color={platform.id === 1 ? "gray" : "brown"}
+                        color={"brown"}
                     />
                 ))}
 
