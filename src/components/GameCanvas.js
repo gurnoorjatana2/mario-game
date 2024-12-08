@@ -9,6 +9,7 @@ import Confetti from "react-confetti";
 const GameCanvas = () => {
     const [score, setScore] = useState(0);
     const [playerPosition, setPlayerPosition] = useState({ x: 50, y: 300 });
+    const [worldOffset, setWorldOffset] = useState(0); // Controls the scroll effect of the game world
     const [enemies, setEnemies] = useState([
         { id: 1, x: 200, y: 270, isAlive: true, range: 100 },
         { id: 2, x: 500, y: 270, isAlive: true, range: 100 },
@@ -20,16 +21,15 @@ const GameCanvas = () => {
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
     const [gameWon, setGameWon] = useState(false);
 
-    const [canvasOffset, setCanvasOffset] = useState(0); // Offset for scrolling canvas
-    const CANVAS_WIDTH = 800;
-    const CANVAS_HEIGHT = 400;
-
     // Platforms
     const platforms = [
-        { id: 1, x: 100, y: 300, width: 100, height: 20 },
-        { id: 2, x: 300, y: 200, width: 100, height: 20 },
-        { id: 3, x: 0, y: 380, width: 1600, height: 20 }, // Ground spans the entire level
+        { id: 1, x: 100, y: 300, width: 100, height: 20 }, // Regular platform
+        { id: 2, x: 300, y: 200, width: 100, height: 20 }, // Higher platform
+        { id: 3, x: 0, y: 380, width: 2000, height: 20 }, // Long ground
     ];
+
+    const CANVAS_WIDTH = 800; // Screen width
+    const CANVAS_HEIGHT = 400;
 
     // Handle collectible collection
     const handleCollect = (collectibleId) => {
@@ -78,29 +78,12 @@ const GameCanvas = () => {
         return () => backgroundMusic.stop();
     }, []);
 
-    // Scroll canvas dynamically based on character's position
+    // Update world offset based on character position
     useEffect(() => {
-        if (playerPosition.x > CANVAS_WIDTH / 2) {
-            setCanvasOffset(playerPosition.x - CANVAS_WIDTH / 2);
+        if (playerPosition.x > CANVAS_WIDTH / 2 && playerPosition.x < 2000 - CANVAS_WIDTH / 2) {
+            setWorldOffset(playerPosition.x - CANVAS_WIDTH / 2);
         }
     }, [playerPosition]);
-
-    // Restart Game
-    const restartGame = () => {
-        setScore(0);
-        setPlayerPosition({ x: 50, y: 300 });
-        setEnemies([
-            { id: 1, x: 200, y: 270, isAlive: true, range: 100 },
-            { id: 2, x: 500, y: 270, isAlive: true, range: 100 },
-        ]);
-        setCollectibles([
-            { id: 1, x: 120, y: 270, collected: false },
-            { id: 2, x: 320, y: 170, collected: false },
-        ]);
-        setIsCharacterAlive(true);
-        setGameWon(false);
-        setCanvasOffset(0); // Reset canvas offset
-    };
 
     return (
         <div
@@ -110,79 +93,82 @@ const GameCanvas = () => {
                 height: `${CANVAS_HEIGHT}px`,
                 overflow: "hidden",
                 border: "2px solid black",
-                background: "url(/assets/background.png) repeat-x", // Continuous background
+                background: "url(/assets/background.png) repeat-x",
                 backgroundSize: "cover",
-                transform: `translateX(-${canvasOffset}px)`, // Apply canvas scrolling
-                transition: "transform 0.1s linear",
             }}
         >
-            {/* Display Score */}
+            {/* Static HUD: Display Score */}
             <div
                 style={{
                     position: "absolute",
                     top: "10px",
-                    left: `${canvasOffset + 10}px`, // Adjust based on canvas offset
+                    left: "10px",
                     fontSize: "20px",
                     color: "white",
+                    zIndex: 2, // Ensure HUD stays above game content
                 }}
             >
                 Score: {score}
             </div>
 
-            {/* Render Platforms */}
-            {platforms.map((platform) => (
-                <Platform
-                    key={platform.id}
-                    x={platform.x - canvasOffset}
-                    y={platform.y}
-                    width={platform.width}
-                    height={platform.height}
-                    color={platform.id === 3 ? "gray" : "brown"}
-                />
-            ))}
+            {/* Moving game world */}
+            <div
+                style={{
+                    position: "relative",
+                    width: "2000px", // Total width of the game world
+                    height: `${CANVAS_HEIGHT}px`,
+                    transform: `translateX(-${worldOffset}px)`,
+                }}
+            >
+                {/* Render Platforms */}
+                {platforms.map((platform) => (
+                    <Platform
+                        key={platform.id}
+                        x={platform.x}
+                        y={platform.y}
+                        width={platform.width}
+                        height={platform.height}
+                        color={platform.id === 3 ? "gray" : "brown"}
+                    />
+                ))}
 
-            {/* Render Collectibles */}
-            {collectibles.map(
-                (collectible) =>
-                    !collectible.collected && (
-                        <Collectible
-                            key={collectible.id}
-                            x={collectible.x - canvasOffset}
-                            y={collectible.y}
-                            playerPosition={playerPosition}
-                            onCollect={() => handleCollect(collectible.id)}
-                        />
-                    )
-            )}
+                {/* Render Collectibles */}
+                {collectibles.map(
+                    (collectible) =>
+                        !collectible.collected && (
+                            <Collectible
+                                key={collectible.id}
+                                x={collectible.x}
+                                y={collectible.y}
+                                playerPosition={playerPosition}
+                                onCollect={() => handleCollect(collectible.id)}
+                            />
+                        )
+                )}
 
-            {/* Render Enemies */}
-            {enemies.map(
-                (enemy) =>
-                    enemy.isAlive && (
-                        <Enemy
-                            key={enemy.id}
-                            enemy={{
-                                ...enemy,
-                                x: enemy.x - canvasOffset, // Adjust enemy position for scrolling
-                            }}
-                            playerPosition={playerPosition}
-                            onEnemyCollision={handleEnemyCollision}
-                        />
-                    )
-            )}
+                {/* Render Enemies */}
+                {enemies.map(
+                    (enemy) =>
+                        enemy.isAlive && (
+                            <Enemy
+                                key={enemy.id}
+                                enemy={enemy}
+                                playerPosition={playerPosition}
+                                onEnemyCollision={handleEnemyCollision}
+                            />
+                        )
+                )}
 
-            {/* Render Character */}
-            {isCharacterAlive && !gameWon && (
-                <Character
-                    onPositionUpdate={setPlayerPosition}
-                    platforms={platforms.map((platform) => ({
-                        ...platform,
-                        x: platform.x - canvasOffset, // Adjust platform position for scrolling
-                    }))}
-                    enemies={enemies}
-                    onEnemyCollision={handleEnemyCollision}
-                />
-            )}
+                {/* Render Character */}
+                {isCharacterAlive && !gameWon && (
+                    <Character
+                        onPositionUpdate={setPlayerPosition}
+                        platforms={platforms}
+                        enemies={enemies}
+                        onEnemyCollision={handleEnemyCollision}
+                    />
+                )}
+            </div>
 
             {/* Game Over Screen */}
             {!isCharacterAlive && (
@@ -203,17 +189,6 @@ const GameCanvas = () => {
                     Game Over
                     <br />
                     Score: {score}
-                    <button
-                        onClick={restartGame}
-                        style={{
-                            marginTop: "20px",
-                            padding: "10px 20px",
-                            fontSize: "16px",
-                            cursor: "pointer",
-                        }}
-                    >
-                        Restart
-                    </button>
                 </div>
             )}
 
@@ -238,17 +213,6 @@ const GameCanvas = () => {
                         🎉 You Won! 🎉
                         <br />
                         Final Score: {score}
-                        <button
-                            onClick={restartGame}
-                            style={{
-                                marginTop: "20px",
-                                padding: "10px 20px",
-                                fontSize: "16px",
-                                cursor: "pointer",
-                            }}
-                        >
-                            Play Again
-                        </button>
                     </div>
                 </>
             )}
@@ -257,4 +221,3 @@ const GameCanvas = () => {
 };
 
 export default GameCanvas;
-
