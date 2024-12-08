@@ -19,13 +19,11 @@ const GameCanvas = () => {
         { id: 2, x: 320, y: 170, collected: false },
     ]);
     const [platforms, setPlatforms] = useState([
-        { id: 1, x: 100, y: 300, width: 100, height: 20 },
-        { id: 2, x: 300, y: 200, width: 100, height: 20 },
-        { id: 3, x: 0, y: 380, width: 2000, height: 20 }, // Ground
+        { id: 1, x: 0, y: 380, width: 800, height: 20 }, // Initial ground platform
     ]);
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
     const [gameWon, setGameWon] = useState(false);
-    const [nextObstacleX, setNextObstacleX] = useState(800); // Track the next obstacle position
+    const [nextPlatformX, setNextPlatformX] = useState(800); // Track the position for the next platform
 
     const CANVAS_WIDTH = 800;
     const CANVAS_HEIGHT = 400;
@@ -54,48 +52,47 @@ const GameCanvas = () => {
         }
     };
 
-    // Generate new obstacles dynamically
+    // Generate continuous ground and new platforms
     useEffect(() => {
-        if (playerPosition.x > nextObstacleX - CANVAS_WIDTH) {
-            // Add new platforms
+        if (playerPosition.x > nextPlatformX - CANVAS_WIDTH) {
+            // Add new ground segment
             setPlatforms((prev) => [
                 ...prev,
                 {
                     id: prev.length + 1,
-                    x: nextObstacleX + Math.random() * 300 + 100,
-                    y: Math.random() * (CANVAS_HEIGHT - 200) + 100,
-                    width: 100,
-                    height: 20,
+                    x: nextPlatformX,
+                    y: 380,
+                    width: 800,
+                    height: 20, // Continuous ground platform
                 },
             ]);
 
-            // Add new enemies
-            setEnemies((prev) => [
-                ...prev,
-                {
-                    id: prev.length + 1,
-                    x: nextObstacleX + Math.random() * 300 + 200,
-                    y: Math.random() * (CANVAS_HEIGHT - 150) + 150,
-                    isAlive: true,
-                    range: Math.random() * 100 + 50,
-                },
-            ]);
-
-            // Add new collectibles
+            // Add new collectible
             setCollectibles((prev) => [
                 ...prev,
                 {
                     id: prev.length + 1,
-                    x: nextObstacleX + Math.random() * 300 + 150,
+                    x: nextPlatformX + Math.random() * 200 + 100,
                     y: Math.random() * (CANVAS_HEIGHT - 200) + 100,
                     collected: false,
                 },
             ]);
 
-            // Update the position for the next set of obstacles
-            setNextObstacleX((prev) => prev + 800);
+            // Add new enemy
+            setEnemies((prev) => [
+                ...prev,
+                {
+                    id: prev.length + 1,
+                    x: nextPlatformX + Math.random() * 200 + 150,
+                    y: 350,
+                    isAlive: true,
+                    range: Math.random() * 100 + 50,
+                },
+            ]);
+
+            setNextPlatformX((prev) => prev + 800); // Update the next platform position
         }
-    }, [playerPosition.x, nextObstacleX]);
+    }, [playerPosition.x, nextPlatformX]);
 
     // Check win condition
     useEffect(() => {
@@ -169,7 +166,7 @@ const GameCanvas = () => {
                         y={platform.y}
                         width={platform.width}
                         height={platform.height}
-                        color={platform.id === 3 ? "gray" : "brown"}
+                        color={platform.id === 1 ? "gray" : "brown"}
                     />
                 ))}
 
