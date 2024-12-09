@@ -1,24 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 
 const Collectible = ({ x, y, playerPosition, onCollect }) => {
-    const [collected, setCollected] = useState(false);
-
     useEffect(() => {
-        if (!collected) {
-            const isCollected =
-                playerPosition.x < x + 20 &&
-                playerPosition.x + 30 > x &&
-                playerPosition.y < y + 20 &&
-                playerPosition.y + 30 > y;
+        const isCollected =
+            playerPosition.x < x + 20 &&
+            playerPosition.x + 30 > x &&
+            playerPosition.y < y + 20 &&
+            playerPosition.y + 50 > y; // Adjust for character's height
 
-            if (isCollected) {
-                setCollected(true); // Update local state
-                onCollect(); // Trigger parent state update
-            }
+        if (isCollected) {
+            onCollect(); // Trigger parent state update when collected
         }
-    }, [playerPosition, collected, x, y, onCollect]);
-
-    if (collected) return null;
+    }, [playerPosition, x, y, onCollect]);
 
     return (
         <div
@@ -30,10 +23,10 @@ const Collectible = ({ x, y, playerPosition, onCollect }) => {
                 height: "20px",
                 backgroundColor: "gold",
                 borderRadius: "50%",
+                boxShadow: "0 0 5px rgba(255, 215, 0, 0.8)", // Glow effect
             }}
         ></div>
     );
 };
 
 export default Collectible;
-
