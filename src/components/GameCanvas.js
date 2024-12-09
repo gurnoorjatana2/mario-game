@@ -10,7 +10,10 @@ const GameCanvas = () => {
     const [score, setScore] = useState(0);
     const [playerPosition, setPlayerPosition] = useState({ x: 50, y: 300 });
     const [worldOffset, setWorldOffset] = useState(0);
-    const [screenShiftCount, setScreenShiftCount] = useState(0);
+    const [screenShiftCount, setScreenShiftCount] = useState(0); // Count screen shifts
+    const [platforms, setPlatforms] = useState([
+        { id: 1, x: 0, y: 380, width: 800, height: 20 }, // Initial ground platform
+    ]);
     const [enemies, setEnemies] = useState([
         { id: 1, x: 200, y: 350, isAlive: true, range: 100 },
         { id: 2, x: 500, y: 350, isAlive: true, range: 100 },
@@ -19,15 +22,14 @@ const GameCanvas = () => {
         { id: 1, x: 300, y: 300, collected: false },
         { id: 2, x: 700, y: 250, collected: false },
     ]);
-    const [platforms, setPlatforms] = useState([
-        { id: 1, x: 0, y: 380, width: 800, height: 20 }, // Initial ground platform
-    ]);
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
     const [gameWon, setGameWon] = useState(false);
+    const [nextPlatformX, setNextPlatformX] = useState(800); // Next platform start point
 
     const CANVAS_WIDTH = 800;
     const CANVAS_HEIGHT = 400;
 
+    // Sound effects
     const coinSound = new Howl({ src: ["/assets/coin.mp3"], volume: 0.8 });
     const backgroundMusic = new Howl({
         src: ["/assets/background-music.mp3"],
@@ -60,11 +62,9 @@ const GameCanvas = () => {
         }
     };
 
-    // Generate platforms and obstacles dynamically
+    // Add new platforms, enemies, and collectibles dynamically
     useEffect(() => {
-        if (playerPosition.x > worldOffset + CANVAS_WIDTH / 2) {
-            const nextPlatformX = worldOffset + CANVAS_WIDTH;
-
+        if (playerPosition.x > nextPlatformX - CANVAS_WIDTH / 2) {
             // Add new platform
             setPlatforms((prev) => [
                 ...prev,
@@ -73,7 +73,7 @@ const GameCanvas = () => {
                     x: nextPlatformX,
                     y: 380,
                     width: 800,
-                    height: 20, // Ground
+                    height: 20, // Ground platform
                 },
             ]);
 
@@ -100,10 +100,10 @@ const GameCanvas = () => {
                 },
             ]);
 
-            setWorldOffset(nextPlatformX - CANVAS_WIDTH);
+            setNextPlatformX((prev) => prev + 800);
             setScreenShiftCount((prev) => prev + 1);
         }
-    }, [playerPosition.x, worldOffset]);
+    }, [playerPosition.x, nextPlatformX]);
 
     // Check win condition
     useEffect(() => {
@@ -149,7 +149,6 @@ const GameCanvas = () => {
                 Score: {score}
             </div>
 
-            {/* Moving game world */}
             <div
                 style={{
                     position: "relative",
@@ -208,7 +207,6 @@ const GameCanvas = () => {
                 )}
             </div>
 
-            {/* Game Over */}
             {!isCharacterAlive && (
                 <div
                     style={{
@@ -230,7 +228,6 @@ const GameCanvas = () => {
                 </div>
             )}
 
-            {/* Victory */}
             {gameWon && (
                 <>
                     <Confetti width={CANVAS_WIDTH} height={CANVAS_HEIGHT} />
