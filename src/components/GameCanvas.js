@@ -10,7 +10,7 @@ const GameCanvas = () => {
     const [score, setScore] = useState(0);
     const [playerPosition, setPlayerPosition] = useState({ x: 50, y: 300 });
     const [worldOffset, setWorldOffset] = useState(0);
-    const [screenShiftCount, setScreenShiftCount] = useState(0);
+    const [screenShiftCount, setScreenShiftCount] = useState(0); // Count screen shifts
     const [platforms, setPlatforms] = useState([
         { id: 1, x: 0, y: 380, width: 800, height: 20 }, // Initial ground platform
     ]);
@@ -62,7 +62,7 @@ const GameCanvas = () => {
         }
     };
 
-    // Dynamically add platforms, enemies, and collectibles
+    // Add new platforms, enemies, and collectibles dynamically
     useEffect(() => {
         if (playerPosition.x > nextPlatformX - CANVAS_WIDTH / 2) {
             setPlatforms((prev) => [
@@ -72,7 +72,7 @@ const GameCanvas = () => {
                     x: nextPlatformX,
                     y: 380,
                     width: 800,
-                    height: 20, // Ground platform
+                    height: 20,
                 },
             ]);
 
@@ -109,7 +109,7 @@ const GameCanvas = () => {
         }
     }, [screenShiftCount]);
 
-    // Update world offset
+    // Update world offset based on character position
     useEffect(() => {
         if (playerPosition.x > CANVAS_WIDTH / 2) {
             setWorldOffset(playerPosition.x - CANVAS_WIDTH / 2);
@@ -121,6 +121,11 @@ const GameCanvas = () => {
         backgroundMusic.play();
         return () => backgroundMusic.stop();
     }, []);
+
+    const getPlatformColor = (id) => {
+        if (id === 1) return "gray"; // Ground platform
+        return id % 2 === 0 ? "green" : "brown"; // Alternate between green and brown
+    };
 
     return (
         <div
@@ -154,6 +159,7 @@ const GameCanvas = () => {
                     transform: `translateX(-${worldOffset}px)`,
                 }}
             >
+                {/* Render Platforms with dynamic colors */}
                 {platforms.map((platform) => (
                     <Platform
                         key={platform.id}
@@ -161,7 +167,7 @@ const GameCanvas = () => {
                         y={platform.y}
                         width={platform.width}
                         height={platform.height}
-                        color={"brown"}
+                        color={getPlatformColor(platform.id)}
                     />
                 ))}
 
