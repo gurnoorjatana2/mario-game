@@ -12,7 +12,9 @@ const GameCanvas = () => {
     const [worldOffset, setWorldOffset] = useState(0);
     const [screenShiftCount, setScreenShiftCount] = useState(0); // Count screen shifts
     const [platforms, setPlatforms] = useState([
-        { id: 1, x: 0, y: 380, width: 4000, height: 20 }, // Extended ground platform
+        { id: 1, x: 0, y: 380, width: 800, height: 20 }, // Initial ground platform
+        { id: 2, x: 200, y: 300, width: 150, height: 20 }, // Elevated platform
+        { id: 3, x: 600, y: 250, width: 100, height: 20 }, // Higher platform
     ]);
     const [enemies, setEnemies] = useState([
         { id: 1, x: 300, y: 350, isAlive: true, range: 100 },
@@ -62,9 +64,21 @@ const GameCanvas = () => {
         }
     };
 
-    // Add new collectibles and enemies dynamically
+    // Add new platforms, enemies, and collectibles dynamically
     useEffect(() => {
         if (playerPosition.x > nextPlatformX - CANVAS_WIDTH / 2) {
+            // Add new platform
+            setPlatforms((prev) => [
+                ...prev,
+                {
+                    id: prev.length + 1,
+                    x: nextPlatformX,
+                    y: Math.random() * (CANVAS_HEIGHT - 100) + 200,
+                    width: Math.random() * 200 + 100,
+                    height: 20,
+                },
+            ]);
+
             // Add new collectible
             setCollectibles((prev) => [
                 ...prev,
@@ -95,7 +109,7 @@ const GameCanvas = () => {
 
     // Check win condition
     useEffect(() => {
-        if (screenShiftCount >= 2) {
+        if (screenShiftCount >= 3) {
             setGameWon(true);
         }
     }, [screenShiftCount]);
@@ -112,6 +126,11 @@ const GameCanvas = () => {
         backgroundMusic.play();
         return () => backgroundMusic.stop();
     }, []);
+
+    const getPlatformColor = (id) => {
+        if (id === 1) return "gray"; // Ground platform
+        return id % 2 === 0 ? "green" : "brown"; // Alternate between green and brown
+    };
 
     return (
         <div
@@ -145,7 +164,7 @@ const GameCanvas = () => {
                     transform: `translateX(-${worldOffset}px)`,
                 }}
             >
-                {/* Render Platforms */}
+                {/* Render Platforms with dynamic colors */}
                 {platforms.map((platform) => (
                     <Platform
                         key={platform.id}
@@ -153,7 +172,7 @@ const GameCanvas = () => {
                         y={platform.y}
                         width={platform.width}
                         height={platform.height}
-                        color={"gray"} // Extended floor color
+                        color={getPlatformColor(platform.id)}
                     />
                 ))}
 
