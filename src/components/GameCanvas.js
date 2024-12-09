@@ -15,30 +15,31 @@ const GameCanvas = () => {
     const [gameWon, setGameWon] = useState(false);
     const [paused, setPaused] = useState(false);
     const [doubleJumpEnabled, setDoubleJumpEnabled] = useState(false);
+    const [currentCollectibles, setCurrentCollectibles] = useState([]);
+    const [currentEnemies, setCurrentEnemies] = useState([]);
 
     const CANVAS_WIDTH = 800;
     const CANVAS_HEIGHT = 400;
 
-    // Static Level Design
     const platforms = [
-        { id: 1, x: 0, y: 380, width: 800, height: 20, color: "gray" }, // Floor
-        { id: 2, x: 200, y: 300, width: 150, height: 20, color: "brown" }, // Elevated
-        { id: 3, x: 600, y: 250, width: 100, height: 20, color: "green" }, // Higher
-        { id: 4, x: 1000, y: 200, width: 200, height: 20, color: "brown" }, // High Platform
-        { id: 5, x: 1400, y: 300, width: 150, height: 20, color: "brown" }, // Elevated
-        { id: 6, x: 1800, y: 250, width: 200, height: 20, color: "green" }, // Higher
-        { id: 7, x: 2200, y: 300, width: 150, height: 20, color: "brown" }, // Elevated
-        { id: 8, x: 2600, y: 350, width: 800, height: 20, color: "gray" }, // Floor extension
+        { id: 1, x: 0, y: 380, width: 800, height: 20, color: "gray" },
+        { id: 2, x: 200, y: 300, width: 150, height: 20, color: "brown" },
+        { id: 3, x: 600, y: 250, width: 100, height: 20, color: "green" },
+        { id: 4, x: 1000, y: 200, width: 200, height: 20, color: "brown" },
+        { id: 5, x: 1400, y: 300, width: 150, height: 20, color: "brown" },
+        { id: 6, x: 1800, y: 250, width: 200, height: 20, color: "green" },
+        { id: 7, x: 2200, y: 300, width: 150, height: 20, color: "brown" },
+        { id: 8, x: 2600, y: 350, width: 800, height: 20, color: "gray" },
     ];
 
-    const collectibles = [
+    const initialCollectibles = [
         { id: 1, x: 300, y: 250, collected: false, type: "doubleJump" },
         { id: 2, x: 800, y: 200, collected: false, type: "score" },
         { id: 3, x: 1500, y: 250, collected: false, type: "score" },
         { id: 4, x: 2000, y: 200, collected: false, type: "doubleJump" },
     ];
 
-    const enemies = [
+    const initialEnemies = [
         { id: 1, x: 400, y: 350, isAlive: true },
         { id: 2, x: 700, y: 350, isAlive: true },
         { id: 3, x: 1200, y: 350, isAlive: true },
@@ -54,9 +55,15 @@ const GameCanvas = () => {
         volume: 0.5,
     });
 
+    // Initialize state for collectibles and enemies
+    useEffect(() => {
+        setCurrentCollectibles(initialCollectibles);
+        setCurrentEnemies(initialEnemies);
+    }, []);
+
     // Handle collectible collection
     const handleCollect = (collectibleId, type) => {
-        setCollectibles((prev) =>
+        setCurrentCollectibles((prev) =>
             prev.map((collectible) =>
                 collectible.id === collectibleId ? { ...collectible, collected: true } : collectible
             )
@@ -74,14 +81,14 @@ const GameCanvas = () => {
     // Handle enemy collision
     const handleEnemyCollision = (enemyId, wasJumpedOn) => {
         if (wasJumpedOn) {
-            setEnemies((prev) =>
+            setCurrentEnemies((prev) =>
                 prev.map((enemy) =>
                     enemy.id === enemyId ? { ...enemy, isAlive: false } : enemy
                 )
             );
             setScore((prev) => prev + 10);
         } else {
-            setLives((prev) => prev - 1);
+            setLives((prev) => Math.max(prev - 1, 0));
             if (lives > 1) {
                 restartLevel();
             } else {
@@ -95,18 +102,8 @@ const GameCanvas = () => {
         setPlayerPosition({ x: 50, y: 300 });
         setWorldOffset(0);
         setDoubleJumpEnabled(false);
-        setEnemies([
-            { id: 1, x: 400, y: 350, isAlive: true },
-            { id: 2, x: 700, y: 350, isAlive: true },
-            { id: 3, x: 1200, y: 350, isAlive: true },
-            { id: 4, x: 1800, y: 350, isAlive: true },
-        ]);
-        setCollectibles([
-            { id: 1, x: 300, y: 250, collected: false, type: "doubleJump" },
-            { id: 2, x: 800, y: 200, collected: false, type: "score" },
-            { id: 3, x: 1500, y: 250, collected: false, type: "score" },
-            { id: 4, x: 2000, y: 200, collected: false, type: "doubleJump" },
-        ]);
+        setCurrentCollectibles(initialCollectibles);
+        setCurrentEnemies(initialEnemies);
     };
 
     // Restart the game
@@ -171,6 +168,7 @@ const GameCanvas = () => {
                 </button>
             </div>
 
+            {/* Game World */}
             <div
                 style={{
                     position: "relative",
@@ -192,7 +190,7 @@ const GameCanvas = () => {
                 ))}
 
                 {/* Collectibles */}
-                {collectibles.map(
+                {currentCollectibles.map(
                     (collectible) =>
                         !collectible.collected && (
                             <Collectible
@@ -208,7 +206,7 @@ const GameCanvas = () => {
                 )}
 
                 {/* Enemies */}
-                {enemies.map(
+                {currentEnemies.map(
                     (enemy) =>
                         enemy.isAlive && (
                             <Enemy
@@ -225,7 +223,7 @@ const GameCanvas = () => {
                     <Character
                         onPositionUpdate={setPlayerPosition}
                         platforms={platforms}
-                        enemies={enemies}
+                        enemies={currentEnemies}
                         doubleJumpEnabled={doubleJumpEnabled}
                         onEnemyCollision={handleEnemyCollision}
                     />
