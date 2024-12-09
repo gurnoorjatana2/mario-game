@@ -13,14 +13,16 @@ const GameCanvas = () => {
     const [screenShiftCount, setScreenShiftCount] = useState(0); // Count screen shifts
     const [platforms, setPlatforms] = useState([
         { id: 1, x: 0, y: 380, width: 800, height: 20 }, // Initial ground platform
+        { id: 2, x: 200, y: 300, width: 150, height: 20 }, // Elevated platform
+        { id: 3, x: 600, y: 250, width: 100, height: 20 }, // Higher platform
     ]);
     const [enemies, setEnemies] = useState([
-        { id: 1, x: 200, y: 350, isAlive: true, range: 100 },
-        { id: 2, x: 500, y: 350, isAlive: true, range: 100 },
+        { id: 1, x: 300, y: 350, isAlive: true, range: 100 },
+        { id: 2, x: 700, y: 350, isAlive: true, range: 100 },
     ]);
     const [collectibles, setCollectibles] = useState([
-        { id: 1, x: 300, y: 300, collected: false },
-        { id: 2, x: 700, y: 250, collected: false },
+        { id: 1, x: 350, y: 250, collected: false },
+        { id: 2, x: 750, y: 200, collected: false },
     ]);
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
     const [gameWon, setGameWon] = useState(false);
@@ -65,32 +67,35 @@ const GameCanvas = () => {
     // Add new platforms, enemies, and collectibles dynamically
     useEffect(() => {
         if (playerPosition.x > nextPlatformX - CANVAS_WIDTH / 2) {
+            // Add new platform
             setPlatforms((prev) => [
                 ...prev,
                 {
                     id: prev.length + 1,
                     x: nextPlatformX,
-                    y: 380,
-                    width: 800,
+                    y: Math.random() * (CANVAS_HEIGHT - 100) + 200,
+                    width: Math.random() * 200 + 100,
                     height: 20,
                 },
             ]);
 
+            // Add new collectible
             setCollectibles((prev) => [
                 ...prev,
                 {
                     id: prev.length + 1,
-                    x: nextPlatformX + Math.random() * 200 + 100,
+                    x: nextPlatformX + Math.random() * 200 + 50,
                     y: Math.random() * (CANVAS_HEIGHT - 150) + 100,
                     collected: false,
                 },
             ]);
 
+            // Add new enemy
             setEnemies((prev) => [
                 ...prev,
                 {
                     id: prev.length + 1,
-                    x: nextPlatformX + Math.random() * 200 + 150,
+                    x: nextPlatformX + Math.random() * 200 + 100,
                     y: 350,
                     isAlive: true,
                     range: Math.random() * 100 + 50,
@@ -104,7 +109,7 @@ const GameCanvas = () => {
 
     // Check win condition
     useEffect(() => {
-        if (screenShiftCount >= 2) {
+        if (screenShiftCount >= 3) {
             setGameWon(true);
         }
     }, [screenShiftCount]);
