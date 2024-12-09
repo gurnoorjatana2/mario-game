@@ -40,6 +40,10 @@
   },
   "devDependencies": {
     "@babel/plugin-transform-private-property-in-object": "^7.25.9",
+    "postcss": "^8.4.49",
+    "postcss-loader": "^8.1.1",
+    "postcss-preset-env": "^10.1.1",
+    "postcss-selector-not": "^8.0.1",
     "react-scripts": "^5.0.1",
     "webpack-dev-server": "^5.1.0"
   }

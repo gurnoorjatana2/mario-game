@@ -1,17 +1,16 @@
-import React, { useEffect } from "react";
+import React from "react";
 
 const Collectible = ({ x, y, playerPosition, onCollect }) => {
-    useEffect(() => {
-        const isCollected =
-            playerPosition.x < x + 20 &&
-            playerPosition.x + 30 > x &&
-            playerPosition.y < y + 20 &&
-            playerPosition.y + 50 > y; // Adjust for character's height
+    const isCollected =
+        playerPosition.x < x + 20 &&
+        playerPosition.x + 30 > x &&
+        playerPosition.y < y + 20 &&
+        playerPosition.y + 50 > y;
 
-        if (isCollected) {
-            onCollect(); // Trigger parent state update when collected
-        }
-    }, [playerPosition, x, y, onCollect]);
+    if (isCollected) {
+        onCollect();
+        return null;
+    }
 
     return (
         <div
@@ -23,7 +22,7 @@ const Collectible = ({ x, y, playerPosition, onCollect }) => {
                 height: "20px",
                 backgroundColor: "gold",
                 borderRadius: "50%",
-                boxShadow: "0 0 5px rgba(255, 215, 0, 0.8)", // Glow effect
+                border: "2px solid orange",
             }}
         ></div>
     );
