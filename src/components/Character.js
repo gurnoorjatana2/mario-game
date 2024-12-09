@@ -6,44 +6,31 @@ const Character = ({
     onPositionUpdate,
     platforms,
     enemies,
+    doubleJumpEnabled,
     onEnemyCollision,
-    onCollectibleCollision,
 }) => {
     const [position, setPosition] = useState({ x: 50, y: 300 });
     const [velocity, setVelocity] = useState({ x: 0, y: 0 });
-    const [isJumping, setIsJumping] = useState(false);
-    const [currentPlatform, setCurrentPlatform] = useState(null);
+    const [jumpCount, setJumpCount] = useState(0); // For double-jump tracking
+    const [isInAir, setIsInAir] = useState(false); // Track airborne state
 
     const CHARACTER_HEIGHT = 50;
     const CHARACTER_WIDTH = 30;
     const GROUND_LEVEL = 380;
-
-    const [wasInAir, setWasInAir] = useState(false);
+    const JUMP_HEIGHT = -12; // Adjust jump height for balanced gameplay
 
     // Sound Effects
-    const jumpSound = new Howl({
-        src: ["/assets/jump.mp3"],
-        volume: 0.8,
-    });
+    const jumpSound = new Howl({ src: ["/assets/jump.mp3"], volume: 0.8 });
+    const landSound = new Howl({ src: ["/assets/land.mp3"], volume: 0.8 });
 
-    const landSound = new Howl({
-        src: ["/assets/land.mp3"],
-        volume: 0.8,
-    });
-
-    const coinSound = new Howl({
-        src: ["/assets/coin.mp3"],
-        volume: 0.8,
-    });
-
-    // Collision with platforms
+    // Check collision with platforms
     const checkCollisionWithPlatforms = (x, y) => {
         for (const platform of platforms) {
             const isColliding =
                 x + CHARACTER_WIDTH > platform.x &&
                 x < platform.x + platform.width &&
                 y + CHARACTER_HEIGHT >= platform.y &&
-                y + CHARACTER_HEIGHT <= platform.y + 10;
+                y + CHARACTER_HEIGHT <= platform.y + 10; // Buffer for collision
 
             if (isColliding) {
                 return platform;
@@ -52,7 +39,7 @@ const Character = ({
         return null;
     };
 
-    // Collision with enemies
+    // Check collision with enemies
     const checkCollisionWithEnemies = (x, y) => {
         for (const enemy of enemies) {
             if (!enemy.isAlive) continue;
@@ -77,42 +64,34 @@ const Character = ({
                 !landedOnTop;
 
             if (landedOnTop) {
-                onEnemyCollision(enemy.id, true); // Enemy is killed
+                onEnemyCollision(enemy.id, true); // Enemy defeated
                 return false;
             }
 
             if (touchedSideOrBottom) {
-                onEnemyCollision(enemy.id, false); // Character dies
+                onEnemyCollision(enemy.id, false); // Player defeated
                 return true;
             }
         }
         return false;
     };
 
-    // Collision with collectibles
-    const checkCollisionWithCollectibles = (x, y) => {
-        onCollectibleCollision?.(x, y, () => {
-            coinSound.play();
-        });
-    };
-
-    // Handle movement keys
+    // Handle player input
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === "ArrowRight") setVelocity((v) => ({ ...v, x: 5 }));
             if (e.key === "ArrowLeft") setVelocity((v) => ({ ...v, x: -5 }));
-            if (e.key === " " && !isJumping) {
+            if (e.key === " " && jumpCount < (doubleJumpEnabled ? 2 : 1)) {
                 jumpSound.play();
-                setVelocity((v) => ({ ...v, y: -15 }));
-                setIsJumping(true);
-                setCurrentPlatform(null);
-                setWasInAir(true);
+                setVelocity((v) => ({ ...v, y: JUMP_HEIGHT }));
+                setJumpCount((count) => count + 1);
             }
         };
 
         const handleKeyUp = (e) => {
-            if (e.key === "ArrowRight" || e.key === "ArrowLeft")
+            if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
                 setVelocity((v) => ({ ...v, x: 0 }));
+            }
         };
 
         window.addEventListener("keydown", handleKeyDown);
@@ -122,62 +101,52 @@ const Character = ({
             window.removeEventListener("keydown", handleKeyDown);
             window.removeEventListener("keyup", handleKeyUp);
         };
-    }, [isJumping]);
+    }, [jumpCount, doubleJumpEnabled]);
 
     // Main game loop
     useEffect(() => {
         const interval = setInterval(() => {
-            setPosition((pos) => {
-                let newX = pos.x + velocity.x;
-                let newY = pos.y + velocity.y;
+            setPosition((prevPosition) => {
+                let newX = prevPosition.x + velocity.x;
+                let newY = prevPosition.y + velocity.y;
 
-                // Platform collision
+                // Collision detection with platforms
                 const platform = checkCollisionWithPlatforms(newX, newY);
                 if (platform && velocity.y >= 0) {
                     newY = platform.y - CHARACTER_HEIGHT;
-                    setIsJumping(false);
-                    setCurrentPlatform(platform);
-                    if (wasInAir) {
-                        landSound.play();
-                        setWasInAir(false);
-                    }
+                    setJumpCount(0);
+                    setIsInAir(false);
+                    if (isInAir) landSound.play(); // Play landing sound
                 } else if (newY >= GROUND_LEVEL) {
                     newY = GROUND_LEVEL;
-                    setIsJumping(false);
-                    setCurrentPlatform(null);
-                    if (wasInAir) {
-                        landSound.play();
-                        setWasInAir(false);
-                    }
+                    setJumpCount(0);
+                    setIsInAir(false);
+                    if (isInAir) landSound.play(); // Play landing sound
                 } else {
-                    setCurrentPlatform(null);
-                    setWasInAir(true);
+                    setIsInAir(true);
                 }
 
-                // Enemy collision
+                // Collision detection with enemies
                 const died = checkCollisionWithEnemies(newX, newY);
                 if (died) {
-                    newY = GROUND_LEVEL + 50;
-                    setIsJumping(false);
+                    newY = GROUND_LEVEL + 50; // Simulate fall on death
                 }
 
-                // Collectible collision
-                checkCollisionWithCollectibles(newX, newY);
-
+                // Notify parent about position update
                 const updatedPosition = { x: newX, y: newY };
-                requestAnimationFrame(() => onPositionUpdate(updatedPosition));
+                onPositionUpdate(updatedPosition);
                 return updatedPosition;
             });
 
-            // Gravity
+            // Apply gravity
             setVelocity((v) => ({
                 x: v.x,
-                y: Math.min(v.y + 1, 10),
+                y: Math.min(v.y + 1, 10), // Gravity and terminal velocity
             }));
-        }, 30);
+        }, 1000 / 60); // 60 FPS
 
         return () => clearInterval(interval);
-    }, [velocity, platforms, currentPlatform, enemies, onEnemyCollision, onPositionUpdate, wasInAir]);
+    }, [velocity, platforms, enemies, onEnemyCollision, onPositionUpdate, isInAir]);
 
     return (
         <img
