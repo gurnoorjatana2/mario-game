@@ -12,7 +12,7 @@ const GameCanvas = () => {
     const [worldOffset, setWorldOffset] = useState(0);
     const [screenShiftCount, setScreenShiftCount] = useState(0);
     const [platforms, setPlatforms] = useState([
-        { id: 1, x: 0, y: 380, width: 800, height: 20 }, // Initial ground platform
+        { id: 1, x: 0, y: 380, width: 800, height: 20, color: "gray" }, // Initial ground platform
     ]);
     const [enemies, setEnemies] = useState([
         { id: 1, x: 300, y: 350, isAlive: true, range: 100 },
@@ -72,7 +72,8 @@ const GameCanvas = () => {
                     x: nextGroundPlatformX,
                     y: 380,
                     width: 800,
-                    height: 20, // Extend ground
+                    height: 20,
+                    color: "gray", // Ground platform is gray
                 },
             ]);
             setNextGroundPlatformX((prev) => prev + 800);
@@ -90,6 +91,7 @@ const GameCanvas = () => {
                     y: Math.random() * (CANVAS_HEIGHT - 150) + 100,
                     width: Math.random() * 200 + 100,
                     height: 20,
+                    color: "brown", // Elevated platforms are brown
                 },
             ]);
 
@@ -178,7 +180,7 @@ const GameCanvas = () => {
                         y={platform.y}
                         width={platform.width}
                         height={platform.height}
-                        color={"brown"}
+                        color={platform.color}
                     />
                 ))}
 
