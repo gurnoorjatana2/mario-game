@@ -13,10 +13,20 @@ const Enemy = ({ enemy, playerPosition, onEnemyCollision }) => {
                 }
                 return { ...prevPosition, x: newX };
             });
+
+            // Check for collision with player
+            if (
+                playerPosition.x < position.x + 30 &&
+                playerPosition.x + 30 > position.x &&
+                playerPosition.y < position.y + 30 &&
+                playerPosition.y + 50 > position.y
+            ) {
+                onEnemyCollision();
+            }
         }, 50);
 
         return () => clearInterval(interval);
-    }, [direction, enemy]);
+    }, [direction, enemy, playerPosition, position, onEnemyCollision]);
 
     return (
         <div
@@ -27,9 +37,7 @@ const Enemy = ({ enemy, playerPosition, onEnemyCollision }) => {
                 width: "30px",
                 height: "30px",
                 backgroundColor: "red",
-                border: "2px solid #8B0000",
                 borderRadius: "50%",
-                animation: "enemyMove 1.5s linear infinite",
                 boxShadow: "0px 0px 10px 2px rgba(255, 0, 0, 0.75)",
             }}
         ></div>

@@ -1,20 +1,18 @@
 import React from "react";
-import flag from "../assets/flag.png";
+import flagImage from "../assets/flag.png";
 
-const Flag = ({ x, y }) => {
+const Flag = ({ x, y, width, height }) => {
     return (
         <div
             style={{
                 position: "absolute",
                 left: `${x}px`,
                 top: `${y}px`,
-                width: "50px",
-                height: "80px",
-                backgroundImage: `url(${flag})`,
+                width: `${width}px`,
+                height: `${height}px`,
+                backgroundImage: `url(${flagImage})`,
                 backgroundSize: "cover",
-                border: "2px solid white",
-                boxShadow: "0 0 15px 3px rgba(255, 255, 0, 0.7)",
-                animation: "flagWaving 2s infinite ease-in-out",
+                backgroundRepeat: "no-repeat",
             }}
         ></div>
     );

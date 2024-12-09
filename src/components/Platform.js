@@ -10,6 +10,8 @@ const Platform = ({ x, y, width, height, color }) => {
                 width: `${width}px`,
                 height: `${height}px`,
                 backgroundColor: color,
+                border: "1px solid #444",
+                boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
             }}
         ></div>
     );
