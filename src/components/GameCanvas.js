@@ -10,7 +10,7 @@ const GameCanvas = () => {
     const [score, setScore] = useState(0);
     const [playerPosition, setPlayerPosition] = useState({ x: 50, y: 300 });
     const [worldOffset, setWorldOffset] = useState(0);
-    const [screenShiftCount, setScreenShiftCount] = useState(0); // Count screen shifts
+    const [screenShiftCount, setScreenShiftCount] = useState(0);
     const [platforms, setPlatforms] = useState([
         { id: 1, x: 0, y: 380, width: 800, height: 20 }, // Initial ground platform
     ]);
@@ -62,10 +62,9 @@ const GameCanvas = () => {
         }
     };
 
-    // Add new platforms, enemies, and collectibles dynamically
+    // Dynamically add platforms, enemies, and collectibles
     useEffect(() => {
         if (playerPosition.x > nextPlatformX - CANVAS_WIDTH / 2) {
-            // Add new platform
             setPlatforms((prev) => [
                 ...prev,
                 {
@@ -77,7 +76,6 @@ const GameCanvas = () => {
                 },
             ]);
 
-            // Add new collectible
             setCollectibles((prev) => [
                 ...prev,
                 {
@@ -88,7 +86,6 @@ const GameCanvas = () => {
                 },
             ]);
 
-            // Add new enemy
             setEnemies((prev) => [
                 ...prev,
                 {
@@ -112,7 +109,7 @@ const GameCanvas = () => {
         }
     }, [screenShiftCount]);
 
-    // Update world offset based on character position
+    // Update world offset
     useEffect(() => {
         if (playerPosition.x > CANVAS_WIDTH / 2) {
             setWorldOffset(playerPosition.x - CANVAS_WIDTH / 2);
@@ -157,7 +154,6 @@ const GameCanvas = () => {
                     transform: `translateX(-${worldOffset}px)`,
                 }}
             >
-                {/* Render Platforms */}
                 {platforms.map((platform) => (
                     <Platform
                         key={platform.id}
@@ -169,7 +165,6 @@ const GameCanvas = () => {
                     />
                 ))}
 
-                {/* Render Collectibles */}
                 {collectibles.map(
                     (collectible) =>
                         !collectible.collected && (
@@ -183,7 +178,6 @@ const GameCanvas = () => {
                         )
                 )}
 
-                {/* Render Enemies */}
                 {enemies.map(
                     (enemy) =>
                         enemy.isAlive && (
@@ -196,7 +190,6 @@ const GameCanvas = () => {
                         )
                 )}
 
-                {/* Render Character */}
                 {isCharacterAlive && !gameWon && (
                     <Character
                         onPositionUpdate={setPlayerPosition}
