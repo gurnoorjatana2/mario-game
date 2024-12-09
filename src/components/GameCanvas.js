@@ -13,6 +13,8 @@ const GameCanvas = () => {
     const [screenShiftCount, setScreenShiftCount] = useState(0);
     const [platforms, setPlatforms] = useState([
         { id: 1, x: 0, y: 380, width: 800, height: 20, color: "gray" }, // Initial ground platform
+        { id: 2, x: 200, y: 300, width: 150, height: 20, color: "brown" }, // Elevated platform
+        { id: 3, x: 600, y: 250, width: 100, height: 20, color: "green" }, // Higher platform
     ]);
     const [enemies, setEnemies] = useState([
         { id: 1, x: 300, y: 350, isAlive: true, range: 100 },
@@ -20,17 +22,20 @@ const GameCanvas = () => {
     ]);
     const [collectibles, setCollectibles] = useState([
         { id: 1, x: 350, y: 250, collected: false },
-        { id: 2, x: 750, y: 200, collected: false },
+        { id: 2, x: 750, y: 200, collected: false, type: "score" }, // Regular collectible
+        { id: 3, x: 450, y: 300, collected: false, type: "doubleJump" }, // Double jump power-up
     ]);
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
     const [gameWon, setGameWon] = useState(false);
     const [nextGroundPlatformX, setNextGroundPlatformX] = useState(800); // Next ground platform position
+    const [doubleJumpEnabled, setDoubleJumpEnabled] = useState(false); // Double jump power-up
 
     const CANVAS_WIDTH = 800;
     const CANVAS_HEIGHT = 400;
 
     // Sound effects
     const coinSound = new Howl({ src: ["/assets/coin.mp3"], volume: 0.8 });
+    const powerUpSound = new Howl({ src: ["/assets/power-up.mp3"], volume: 0.8 });
     const backgroundMusic = new Howl({
         src: ["/assets/background-music.mp3"],
         loop: true,
@@ -38,14 +43,20 @@ const GameCanvas = () => {
     });
 
     // Handle collectible collection
-    const handleCollect = (collectibleId) => {
+    const handleCollect = (collectibleId, type) => {
         setCollectibles((prev) =>
             prev.map((collectible) =>
                 collectible.id === collectibleId ? { ...collectible, collected: true } : collectible
             )
         );
-        setScore((prev) => prev + 5);
-        coinSound.play();
+
+        if (type === "score") {
+            setScore((prev) => prev + 5);
+            coinSound.play();
+        } else if (type === "doubleJump") {
+            setDoubleJumpEnabled(true);
+            powerUpSound.play();
+        }
     };
 
     // Handle enemy collision
@@ -73,7 +84,7 @@ const GameCanvas = () => {
                     y: 380,
                     width: 800,
                     height: 20,
-                    color: "gray", // Ground platform is gray
+                    color: "gray",
                 },
             ]);
             setNextGroundPlatformX((prev) => prev + 800);
@@ -91,7 +102,7 @@ const GameCanvas = () => {
                     y: Math.random() * (CANVAS_HEIGHT - 150) + 100,
                     width: Math.random() * 200 + 100,
                     height: 20,
-                    color: "brown", // Elevated platforms are brown
+                    color: "brown",
                 },
             ]);
 
@@ -102,6 +113,7 @@ const GameCanvas = () => {
                     x: nextGroundPlatformX + Math.random() * 200 + 50,
                     y: Math.random() * (CANVAS_HEIGHT - 150) + 100,
                     collected: false,
+                    type: Math.random() < 0.2 ? "doubleJump" : "score", // Randomly assign type
                 },
             ]);
 
@@ -184,6 +196,7 @@ const GameCanvas = () => {
                     />
                 ))}
 
+                {/* Render Collectibles */}
                 {collectibles.map(
                     (collectible) =>
                         !collectible.collected && (
@@ -192,11 +205,12 @@ const GameCanvas = () => {
                                 x={collectible.x}
                                 y={collectible.y}
                                 playerPosition={playerPosition}
-                                onCollect={() => handleCollect(collectible.id)}
+                                onCollect={() => handleCollect(collectible.id, collectible.type)}
                             />
                         )
                 )}
 
+                {/* Render Enemies */}
                 {enemies.map(
                     (enemy) =>
                         enemy.isAlive && (
@@ -209,11 +223,13 @@ const GameCanvas = () => {
                         )
                 )}
 
+                {/* Render Character */}
                 {isCharacterAlive && !gameWon && (
                     <Character
                         onPositionUpdate={setPlayerPosition}
                         platforms={platforms}
                         enemies={enemies}
+                        doubleJumpEnabled={doubleJumpEnabled}
                         onEnemyCollision={handleEnemyCollision}
                     />
                 )}
