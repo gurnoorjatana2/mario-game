@@ -11,27 +11,48 @@ const GameCanvas = () => {
     const [lives, setLives] = useState(3);
     const [playerPosition, setPlayerPosition] = useState({ x: 50, y: 300 });
     const [worldOffset, setWorldOffset] = useState(0);
-    const [platforms, setPlatforms] = useState([
-        { id: 1, x: 0, y: 380, width: 800, height: 20, color: "gray" }, // Floor
-        { id: 2, x: 200, y: 300, width: 150, height: 20, color: "brown" }, // Elevated platform
-        { id: 3, x: 600, y: 250, width: 100, height: 20, color: "green" }, // Higher platform
-    ]);
-    const [enemies, setEnemies] = useState([
-        { id: 1, x: 400, y: 350, isAlive: true },
-        { id: 2, x: 700, y: 350, isAlive: true },
-    ]);
-    const [collectibles, setCollectibles] = useState([
-        { id: 1, x: 500, y: 300, collected: false, type: "doubleJump" },
-        { id: 2, x: 800, y: 200, collected: false, type: "score" },
-    ]);
     const [isCharacterAlive, setIsCharacterAlive] = useState(true);
     const [gameWon, setGameWon] = useState(false);
     const [paused, setPaused] = useState(false);
     const [doubleJumpEnabled, setDoubleJumpEnabled] = useState(false);
-    const [level, setLevel] = useState(1);
 
     const CANVAS_WIDTH = 800;
     const CANVAS_HEIGHT = 400;
+
+    // Static Level Design
+    const platforms = [
+        { id: 1, x: 0, y: 380, width: 800, height: 20, color: "gray" }, // Floor
+        { id: 2, x: 200, y: 300, width: 150, height: 20, color: "brown" }, // Elevated
+        { id: 3, x: 600, y: 250, width: 100, height: 20, color: "green" }, // Higher
+        { id: 4, x: 1000, y: 200, width: 200, height: 20, color: "brown" }, // High Platform
+        { id: 5, x: 1400, y: 300, width: 150, height: 20, color: "brown" }, // Elevated
+        { id: 6, x: 1800, y: 250, width: 200, height: 20, color: "green" }, // Higher
+        { id: 7, x: 2200, y: 300, width: 150, height: 20, color: "brown" }, // Elevated
+        { id: 8, x: 2600, y: 350, width: 800, height: 20, color: "gray" }, // Floor extension
+    ];
+
+    const collectibles = [
+        { id: 1, x: 300, y: 250, collected: false, type: "doubleJump" },
+        { id: 2, x: 800, y: 200, collected: false, type: "score" },
+        { id: 3, x: 1500, y: 250, collected: false, type: "score" },
+        { id: 4, x: 2000, y: 200, collected: false, type: "doubleJump" },
+    ];
+
+    const enemies = [
+        { id: 1, x: 400, y: 350, isAlive: true },
+        { id: 2, x: 700, y: 350, isAlive: true },
+        { id: 3, x: 1200, y: 350, isAlive: true },
+        { id: 4, x: 1800, y: 350, isAlive: true },
+    ];
+
+    // Sound Effects
+    const coinSound = new Howl({ src: ["/assets/coin.mp3"], volume: 0.8 });
+    const powerUpSound = new Howl({ src: ["/assets/power-up.mp3"], volume: 0.8 });
+    const backgroundMusic = new Howl({
+        src: ["/assets/background-music.mp3"],
+        loop: true,
+        volume: 0.5,
+    });
 
     // Handle collectible collection
     const handleCollect = (collectibleId, type) => {
@@ -40,10 +61,13 @@ const GameCanvas = () => {
                 collectible.id === collectibleId ? { ...collectible, collected: true } : collectible
             )
         );
+
         if (type === "score") {
             setScore((prev) => prev + 5);
+            coinSound.play();
         } else if (type === "doubleJump") {
             setDoubleJumpEnabled(true);
+            powerUpSound.play();
         }
     };
 
@@ -57,7 +81,7 @@ const GameCanvas = () => {
             );
             setScore((prev) => prev + 10);
         } else {
-            setLives((prevLives) => prevLives - 1);
+            setLives((prev) => prev - 1);
             if (lives > 1) {
                 restartLevel();
             } else {
@@ -74,15 +98,14 @@ const GameCanvas = () => {
         setEnemies([
             { id: 1, x: 400, y: 350, isAlive: true },
             { id: 2, x: 700, y: 350, isAlive: true },
+            { id: 3, x: 1200, y: 350, isAlive: true },
+            { id: 4, x: 1800, y: 350, isAlive: true },
         ]);
         setCollectibles([
-            { id: 1, x: 500, y: 300, collected: false, type: "doubleJump" },
+            { id: 1, x: 300, y: 250, collected: false, type: "doubleJump" },
             { id: 2, x: 800, y: 200, collected: false, type: "score" },
-        ]);
-        setPlatforms([
-            { id: 1, x: 0, y: 380, width: 800, height: 20, color: "gray" },
-            { id: 2, x: 200, y: 300, width: 150, height: 20, color: "brown" },
-            { id: 3, x: 600, y: 250, width: 100, height: 20, color: "green" },
+            { id: 3, x: 1500, y: 250, collected: false, type: "score" },
+            { id: 4, x: 2000, y: 200, collected: false, type: "doubleJump" },
         ]);
     };
 
@@ -90,7 +113,6 @@ const GameCanvas = () => {
     const restartGame = () => {
         setScore(0);
         setLives(3);
-        setLevel(1);
         setGameWon(false);
         restartLevel();
     };
@@ -100,24 +122,18 @@ const GameCanvas = () => {
         setPaused((prev) => !prev);
     };
 
-    // Progress to the next level
+    // Play background music
     useEffect(() => {
-        if (playerPosition.x > 1000 && level === 1) {
-            setLevel(2);
-            setPlayerPosition({ x: 50, y: 300 });
-            setWorldOffset(0);
-            setPlatforms([
-                { id: 1, x: 0, y: 380, width: 800, height: 20, color: "gray" },
-                { id: 2, x: 300, y: 300, width: 150, height: 20, color: "brown" },
-                { id: 3, x: 700, y: 250, width: 100, height: 20, color: "green" },
-                { id: 4, x: 1000, y: 200, width: 200, height: 20, color: "brown" },
-            ]);
-            setCollectibles([
-                { id: 1, x: 500, y: 300, collected: false, type: "doubleJump" },
-                { id: 2, x: 900, y: 200, collected: false, type: "score" },
-            ]);
+        backgroundMusic.play();
+        return () => backgroundMusic.stop();
+    }, []);
+
+    // Update world offset
+    useEffect(() => {
+        if (playerPosition.x > CANVAS_WIDTH / 2) {
+            setWorldOffset(playerPosition.x - CANVAS_WIDTH / 2);
         }
-    }, [playerPosition.x, level]);
+    }, [playerPosition]);
 
     return (
         <div
@@ -131,7 +147,7 @@ const GameCanvas = () => {
                 backgroundSize: "cover",
             }}
         >
-            {/* Score and lives */}
+            {/* Score and Lives */}
             <div
                 style={{
                     position: "absolute",
@@ -158,7 +174,7 @@ const GameCanvas = () => {
             <div
                 style={{
                     position: "relative",
-                    width: "4000px",
+                    width: "3000px",
                     height: `${CANVAS_HEIGHT}px`,
                     transform: `translateX(-${worldOffset}px)`,
                 }}
@@ -174,6 +190,7 @@ const GameCanvas = () => {
                         color={platform.color}
                     />
                 ))}
+
                 {/* Collectibles */}
                 {collectibles.map(
                     (collectible) =>
@@ -189,6 +206,7 @@ const GameCanvas = () => {
                             />
                         )
                 )}
+
                 {/* Enemies */}
                 {enemies.map(
                     (enemy) =>
@@ -201,6 +219,7 @@ const GameCanvas = () => {
                             />
                         )
                 )}
+
                 {/* Character */}
                 {isCharacterAlive && !gameWon && (
                     <Character
@@ -212,6 +231,8 @@ const GameCanvas = () => {
                     />
                 )}
             </div>
+
+            {/* Game Over */}
             {!isCharacterAlive && (
                 <div
                     style={{
@@ -230,8 +251,30 @@ const GameCanvas = () => {
                     Game Over
                 </div>
             )}
+
+            {/* Victory Screen */}
             {gameWon && (
-                <Confetti width={CANVAS_WIDTH} height={CANVAS_HEIGHT} />
+                <>
+                    <Confetti width={CANVAS_WIDTH} height={CANVAS_HEIGHT} />
+                    <div
+                        style={{
+                            position: "absolute",
+                            top: "50%",
+                            left: "50%",
+                            transform: "translate(-50%, -50%)",
+                            fontSize: "30px",
+                            color: "yellow",
+                            backgroundColor: "rgba(0, 0, 0, 0.7)",
+                            padding: "20px",
+                            borderRadius: "10px",
+                            textAlign: "center",
+                        }}
+                    >
+                        🎉 You Won! 🎉
+                        <br />
+                        Final Score: {score}
+                    </div>
+                </>
             )}
         </div>
     );
